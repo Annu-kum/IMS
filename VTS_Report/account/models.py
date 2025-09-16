@@ -6,6 +6,7 @@ from django.contrib.auth.models import Group
 from django.conf import settings
 from django.contrib.auth.hashers import check_password
 from django.contrib.auth import password_validation
+from rest_framework.authtoken.models import Token
 # Create your models here.
 
 class UserManager(BaseUserManager):
@@ -63,3 +64,14 @@ class User(AbstractBaseUser, PermissionsMixin):
         self.save()
 
         return True
+
+
+
+
+class UserSessionYear(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    token = models.OneToOneField(Token, on_delete=models.CASCADE)
+    session_year = models.CharField(max_length=10)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.session_year}"
