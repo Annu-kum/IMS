@@ -12,7 +12,7 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import {IconButton} from '@mui/material';
 import RefreshIcon from '@mui/icons-material/Refresh';
-import { addMonths,format } from 'date-fns';
+import { addMonths,format,parse } from 'date-fns';
 import {InputAdornment} from '@mui/material';
 const baseUrl='http://127.0.0.1:8000'
 export default function UpdateOtr(props) {
@@ -67,18 +67,28 @@ export default function UpdateOtr(props) {
   }, [setRecordForEdit]);
 
 
-  const nextexdate=() => {
-    // Set up interval to update expiry date 
-    const num = parseInt(values.extendedMonth,10)
-      const givenDate= format(values.ExpiryDate,'dd-MM-yyyy')
-      const newDate = addMonths(givenDate,num);
-      const dateformate = format(newDate,'dd-MM-yyyy');
-     
-      setValues(prevValues => ({
-        ...prevValues,
-        nextExpirydate:dateformate
-      }));
-    };
+const nextexdate = () => {
+  const num = parseInt(values.extendedMonth, 10);
+
+  let givenDate;
+
+  // Case 1: expiry date already ek Date object hai
+  if (values.ExpiryDate instanceof Date) {
+    givenDate = values.ExpiryDate;
+  } else {
+    // Case 2: expiry date ek string hai "dd-MM-yyyy" format me
+    givenDate = parse(values.ExpiryDate, 'dd-MM-yyyy', new Date());
+  }
+
+  const newDate = addMonths(givenDate, num);
+  const dateformate = format(newDate, 'dd-MM-yyyy');
+
+  setValues(prevValues => ({
+    ...prevValues,
+    nextExpirydate: dateformate
+  }));
+
+};
 
 
 
