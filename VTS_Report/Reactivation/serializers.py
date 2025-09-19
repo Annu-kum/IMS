@@ -2,6 +2,7 @@ from rest_framework import serializers
 from .models import ReactivationModels
 from datetime import datetime
 from Dealer.models import Dealersmodel
+from account.serializers import SessionYearSerializer
 
 class ReactivateSerializers(serializers.ModelSerializer):
     ReactivationDate = serializers.DateField(format='%Y-%m-%d',input_formats=["%d-%m-%Y"], required=False, allow_null=True)
@@ -53,7 +54,7 @@ class ReactivateSerializers(serializers.ModelSerializer):
     
 
 
-class ReactivatepostSerializers(serializers.ModelSerializer):
+class ReactivatepostSerializers(SessionYearSerializer,serializers.ModelSerializer):
     ReactivationDate = serializers.DateField(required=False, allow_null=True)
     Reactivation_letterHead = serializers.FileField(write_only=True)
     # Reactivation_letterHead_url = serializers.SerializerMethodField()
@@ -111,7 +112,7 @@ class ReactivatepostSerializers(serializers.ModelSerializer):
 
 
 
-class ReactivateUpdateSerializers(serializers.ModelSerializer):
+class ReactivateUpdateSerializers(SessionYearSerializer,serializers.ModelSerializer):
     ReactivationDate = serializers.DateField(required=False, allow_null=True)
     Reactivation_letterHead = serializers.SerializerMethodField()
     # Reactivation_letterHead_url = serializers.SerializerMethodField()

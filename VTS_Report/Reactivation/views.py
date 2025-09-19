@@ -13,7 +13,8 @@ from rest_framework.pagination import PageNumberPagination
 from Dealer.models import Dealersmodel
 import pandas as pd 
 from rest_framework.exceptions import NotFound
-
+from account.utility import get_user_session_year,SessionYearMixin
+from django.core.files.base import ContentFile
 
 class Paginations(PageNumberPagination):
     page_size = 25
@@ -26,7 +27,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-class GetReactivateviewset(generics.ListAPIView):
+class GetReactivateviewset(SessionYearMixin,generics.ListAPIView):
     queryset = ReactivationModels.objects.all().order_by('MILLER_NAME')
     serializer_class = ReactivateSerializers
     permission_classes = [IsAuthenticated]
@@ -40,7 +41,7 @@ class GetReactivateviewset(generics.ListAPIView):
         return {'request': self.request}
 
     def get_queryset(self):
-        queryset = ReactivationModels.objects.all().order_by('-id')
+        queryset = self.get_queryset().order_by('-id')
         start_date = self.request.query_params.get('start_date', None)
         end_date = self.request.query_params.get('end_date', None)
         
@@ -63,7 +64,7 @@ class GetReactivateviewset(generics.ListAPIView):
         MILLER_TRANSPORTER_ID = kwargs.get('MILLER_TRANSPORTER_ID', None)
         if MILLER_TRANSPORTER_ID:
             
-                miller_instance = ReactivationModels.objects.filter(MILLER_TRANSPORTER_ID=MILLER_TRANSPORTER_ID)
+                miller_instance = self.get_queryset().filter(MILLER_TRANSPORTER_ID=MILLER_TRANSPORTER_ID)
                 if miller_instance.exists():
                   serializer = self.get_serializer(miller_instance,many=True)
                   return Response(serializer.data, status=status.HTTP_200_OK)
@@ -231,38 +232,43 @@ def get_file_url(request, id):
     else:
         return JsonResponse({'error': 'File not found'}, status=404)
 
-
-class ReactivationCountView(generics.ListAPIView):
+class BaseCountView(SessionYearMixin, generics.ListAPIView):
     permission_classes = [AllowAny]
+    serializer_class = ReactivateSerializers  # Specify a serializer if needed 
+    queryset = ReactivationModels.objects.all()  # Base queryset
 
-    def get(self, request, *args, **kwargs):
-        count = ReactivationModels.objects.count()
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        return Response({'count': queryset.count()}, status=status.HTTP_200_OK)
+
+
+class ReactivationCountView(BaseCountView):
+    
+    def list(self, request, *args, **kwargs):
+        count = self.get_queryset().count()
         return Response({'count': count}, status=status.HTTP_200_OK)
 
 
-class NewReactiveCountView(generics.ListAPIView):
-    permission_classes = [AllowAny]
-
-    def get(self, request, *args, **kwargs):
-        new_count = ReactivationModels.objects.filter(NewRenewal__iexact='New').count()
-        return Response({'count': new_count}, status=status.HTTP_200_OK)
+class NewReactiveCountView(BaseCountView):
     
-class RenewalReactivationCountView(generics.ListAPIView):
-    permission_classes = [AllowAny]
-
-    def get(self, request, *args, **kwargs):
-        new_count = ReactivationModels.objects.filter(NewRenewal__iexact='Renewal').count()
+        def list(self, request, *args, **kwargs):
+            new_count = self.get_queryset().filter(NewRenewal__iexact='New').count()
+            return Response({'count': new_count}, status=status.HTTP_200_OK)
+    
+class RenewalReactivationCountView(BaseCountView):
+    
+    def list(self, request, *args, **kwargs):
+        new_count = self.get_queryset().filter(NewRenewal__iexact='Renewal').count()
         return Response({'count': new_count}, status=status.HTTP_200_OK)
 
 
 
-class TodayReactiveCountView(generics.ListAPIView):
-    permission_classes = [AllowAny]
-
-    def get(self, request, *args, **kwargs):
+class TodayReactiveCountView(BaseCountView):
+    
+    def list(self, request, *args, **kwargs):
         today = timezone.now().date()
         tomorrow = today + timedelta(days=1)
-        new_count = ReactivationModels.objects.filter(
+        new_count = self.get_queryset().filter(
             ReactivationDate__gte=today,
             ReactivationDate__lt=tomorrow,
             ).count()
@@ -270,13 +276,12 @@ class TodayReactiveCountView(generics.ListAPIView):
 
 
 
-class TodayNewInstallCountView(generics.ListAPIView):
-    permission_classes = [AllowAny]
+class TodayNewInstallCountView(BaseCountView):
 
-    def get(self, request, *args, **kwargs):
+    def list(self, request, *args, **kwargs):
         today = timezone.now().date()
         tomorrow = today + timedelta(days=1)
-        new_count = ReactivationModels.objects.filter(
+        new_count = self.get_queryset().filter(
             ReactivationDate__gte=today,
             ReactivationDate__lt=tomorrow,
             NewRenewal__iexact='New'
@@ -284,50 +289,45 @@ class TodayNewInstallCountView(generics.ListAPIView):
         return Response({'count': new_count}, status=status.HTTP_200_OK)
     
 
-class TodayRenewalReactiveCountView(generics.ListAPIView):
-    permission_classes = [AllowAny]
-
-    def get(self, request, *args, **kwargs):
+class TodayRenewalReactiveCountView(BaseCountView):
+    
+    def list(self, request, *args, **kwargs):
         today = timezone.now().date()
         tomorrow = today + timedelta(days=1)
-        new_count = ReactivationModels.objects.filter(
+        new_count = self.get_queryset().filter(
             ReactivationDate__gte=today,
             ReactivationDate__lt=tomorrow,
             NewRenewal__iexact='Renewal'
         ).count()
         return Response({'count': new_count}, status=status.HTTP_200_OK)
 
-class YesterdayReactiveCountView(generics.ListAPIView):
-    permission_classes = [AllowAny]
-
-    def get(self, request, *args, **kwargs):
+class YesterdayReactiveCountView(BaseCountView):
+       def list(self, request, *args, **kwargs):
         today = timezone.now().date()
         yesterday = today - timedelta(days=1)
-        yesterday_count = ReactivationModels.objects.filter(ReactivationDate=yesterday).count()
+        yesterday_count = self.get_queryset().filter(ReactivationDate=yesterday).count()
         return Response({'count': yesterday_count}, status=status.HTTP_200_OK)
 
 
 
-class YesterdayNewReactivateCountView(generics.ListAPIView):
-    permission_classes = [AllowAny]
-
-    def get(self, request, *args, **kwargs):
+class YesterdayNewReactivateCountView(BaseCountView):
+    
+    def list(self, request, *args, **kwargs):
         today = timezone.now().date()
         yesterday = today - timedelta(days=1)
-        new_count = ReactivationModels.objects.filter(
+        new_count = self.get_queryset().filter(
             ReactivationDate=yesterday,
             NewRenewal__iexact='New'
         ).count()
         return Response({'count': new_count}, status=status.HTTP_200_OK)
 
-class YesterdayRenewalReactivationCountView(generics.ListAPIView):
-    permission_classes=[AllowAny]
-
-    def get(self, request, *args, **kwargs):
+class YesterdayRenewalReactivationCountView(BaseCountView):
+    
+    def list(self, request, *args, **kwargs):
 
         today=timezone.now().date()
         yesterday = today - timedelta(days=1)
-        renewal_count = ReactivationModels.objects.filter(
+        renewal_count = self.get_queryset().filter(
             ReactivationDate=yesterday,
             NewRenewal__iexact='Renewal'
         ).count()
@@ -354,7 +354,7 @@ class BulkImportView(generics.ListCreateAPIView):
             if excel_file.name.endswith('.csv'):
                 df = pd.read_csv(excel_file)
             else:
-                df = pd.read_excel(file)
+                df = pd.read_excel(excel_file)
         except Exception as e:
             return Response({"error": f"Error reading file: {str(e)}"}, status=400)
             # Filter only the relevant columns
@@ -371,13 +371,23 @@ class BulkImportView(generics.ListCreateAPIView):
 
             # Replace NaN values with empty string
         df = df.fillna('')
-
+        session_year = get_user_session_year(request.user)
+        if not session_year:
+            return Response({"error": "Session year not found for this user."}, status=400)
             # Prepare a list to collect the new entries
         entries = []
 
             # Iterate through the DataFrame and create model instances
         for _, row in df.iterrows():
                try:
+                    reactivation_date_str = str(row["ReactivationDate"]).strip().replace("“", "").replace("”", "")
+                    try:
+                        reactivation_date = datetime.strptime(reactivation_date_str, "%d-%m-%Y").date()
+                    except ValueError:
+                        try:
+                            reactivation_date = datetime.strptime(reactivation_date_str, "%Y-%m-%d").date()
+                        except ValueError:
+                            return Response({"error": f"Error processing row: InstallationDate '{reactivation_date_str}' is not in a recognized format (expected DD-MM-YYYY or YYYY-MM-DD)."}, status=400)
                     entry = ReactivationModels(
                         MILLER_TRANSPORTER_ID=row['MILLER_TRANSPORTER_ID'],
                         MILLER_NAME=row['MILLER_NAME'],
@@ -393,7 +403,7 @@ class BulkImportView(generics.ListCreateAPIView):
                         vehicle1=row['vehicle1'],
                         vehicle2=row['vehicle2'],
                         vehicle3=row['vehicle3'],
-                        ReactivationDate = row['ReactivationDate'],
+                        ReactivationDate = reactivation_date,
                         Employee_Name= row['Employee_Name'],
                         Device_Fault=row['Device_Fault'],
                         Fault_Reason=row['Fault_Reason'],
@@ -401,6 +411,7 @@ class BulkImportView(generics.ListCreateAPIView):
                         Remark1=row['Remark1'],
                         Remark2=row['Remark2'],
                         Remark3=row['Remark3'],
+                        session_year=session_year, 
                     )
                     entry.save()
                     letterhead_file.open()

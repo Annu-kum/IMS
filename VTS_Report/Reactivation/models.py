@@ -6,6 +6,7 @@ from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
 from logmodels.models import LogModel
+from account.models import SessionYearBase
 # # Create your models here.
 
 # # https://github.com/MoTechStore/Django-4-and-React-JS-18-File-Upload-and-Download/tree/main
@@ -23,7 +24,7 @@ def validate_file_extension(value):
         raise ValidationError(f'Unsupported file extension. Supported extensions are: {", ".join(valid_extensions)}')
 
 
-class ReactivationModels(models.Model):
+class ReactivationModels(SessionYearBase):
     id = models.AutoField(primary_key=True)
     MILLER_TRANSPORTER_ID = models.CharField(max_length=15,blank=True)
     MILLER_NAME = models.CharField(max_length=200,blank=True)

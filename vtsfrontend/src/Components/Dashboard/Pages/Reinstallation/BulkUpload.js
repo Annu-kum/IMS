@@ -22,8 +22,12 @@ export default function BulkUpload(props) {
   const[letterHead,setletterHead]=React.useState([])
   const[uploadFile,setuploadFile]=React.useState([])
   const FileInputref = React.useRef(null)
-  const sampleFileUrl = 'http://127.0.0.1:8000/images/ReactivationSample.xlsx';
-
+  const sampleFileUrl = 'http://127.0.0.1:3000/images/ReactivationSample.xlsx';
+  const token = localStorage.getItem('Token');  
+  const headers = {
+     'Content-Type': 'multipart/form-data',
+     'Authorization': `Token ${token}`,
+   };
  
     const downloadSampleFile = async (url) => {
         try {
@@ -94,9 +98,7 @@ export default function BulkUpload(props) {
     formData.append('letterhead',letterHead);
     try {
       const response = await axios.post(`${baseUrl}/reactivation/import`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
+        headers: headers,
       });
       toast.success(response.data.message,{
         theme:"light",
