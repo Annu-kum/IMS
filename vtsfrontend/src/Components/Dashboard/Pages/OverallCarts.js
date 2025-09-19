@@ -7,7 +7,7 @@ import Grid from '@mui/material/Unstable_Grid2';
 import {  Typography } from '@mui/material';
 import axios from 'axios';
 import DehazeIcon from '@mui/icons-material/Dehaze';
-
+import api from '../../account/BaseApi';
 
 
 
@@ -109,10 +109,12 @@ export default function OverallCarts() {
         color: theme.palette.text.secondary,
       }));
       const fetchData=()=>{
+
+      
          
 // -------------------------------Installation-----------------------------
       
-        axios.get(`${baseUrl}/installation/total/count/`)
+        api.get(`/installation/total/count/`)
           .then(response => {
             setCount(response.data.count);
           })
@@ -122,7 +124,7 @@ export default function OverallCarts() {
      
 
    
-        axios.get(`${baseUrl}/installation/total/new-count/`)
+        api.get(`/installation/total/new-count/`)
           .then(response => {
             setInstallnew(response.data.count);
           })
@@ -131,7 +133,7 @@ export default function OverallCarts() {
           });
    
      
-        axios.get(`${baseUrl}/installation/total/renewal-count/`)
+        api.get(`/installation/total/renewal-count/`)
           .then(response => {
             setInstallrenewal(response.data.count);
           })
@@ -140,7 +142,7 @@ export default function OverallCarts() {
           });
    
     
-        axios.get(`${baseUrl}/installation/date/today-count/`)
+        api.get(`/installation/date/today-count/`)
           .then(response => {
             setTodayinstall(response.data.count);
           })
@@ -149,7 +151,7 @@ export default function OverallCarts() {
           });
     
     
-        axios.get(`${baseUrl}/installation/today-new-count/`)
+        api.get(`/installation/today-new-count/`)
           .then(response => {
             setTodaynewinstall(response.data.count);
           })
@@ -158,7 +160,7 @@ export default function OverallCarts() {
           });
     
      
-        axios.get(`${baseUrl}/installation/today-renewal-count/`)
+        api.get(`/installation/today-renewal-count/`)
           .then(response => {
             setTodayrenewalinstall(response.data.count);
           })
@@ -168,7 +170,7 @@ export default function OverallCarts() {
   
 
    
-        axios.get(`${baseUrl}/installation/yesterday-count/`)
+        api.get(`/installation/yesterday-count/`)
           .then(response => {
             setYesterdayinstall(response.data.count);
           })
@@ -176,7 +178,7 @@ export default function OverallCarts() {
             console.error('There was an error fetching the count!', error);
           });
     
-        axios.get(`${baseUrl}/installation/yesterday-new-count/`)
+        api.get(`/installation/yesterday-new-count/`)
           .then(response => {
             setYesterdaynewinstall(response.data.count);
           })
@@ -185,7 +187,7 @@ export default function OverallCarts() {
           });
       
 
-        axios.get(`${baseUrl}/installation/yesterday-renewal-count/`)
+        api.get(`/installation/yesterday-renewal-count/`)
           .then(response => {
             setYesterdayrenewalinstall(response.data.count);
           })
@@ -195,63 +197,63 @@ export default function OverallCarts() {
      
 // ------------------------------------Deactivation-------------------------------
      
-        axios.get(`${baseUrl}/deactivation/total/count/`)
+        api.get(`/deactivation/total/count/`)
         .then(response=>{
           setDcount(response.data.count);
         }).catch(error=>{
           console.error('There was an error fetching the count!', error);
         })
     
-        axios.get(`${baseUrl}/deactivation/total/new-count/`)
+        api.get(`/deactivation/total/new-count/`)
         .then(response=>{
           setdeactivatenew(response.data.count)
         }).catch(error=>{
           console.error('There was an error fetching the count!', error);
         })
      
-        axios.get(`${baseUrl}/deactivation/total/renewal-count/`)
+        api.get(`/deactivation/total/renewal-count/`)
         .then(response=>{
           setDeactivaterenewal(response.data.count)
         }).catch(error=>{
           console.error('There was an error fetching the count!', error);
         })
      
-        axios.get(`${baseUrl}/deactivation/date/today-count/`)
+        api.get(`/deactivation/date/today-count/`)
         .then(response=>{
           setDtodaycount(response.data.count)
         }).catch(error=>{
           console.error('There was an error fetching the count!', error);
         })
       
-        axios.get(`${baseUrl}/deactivation/today-new-count/`)
+        api.get(`/deactivation/today-new-count/`)
         .then(response=>{
           setdeactivatenewToday(response.data.count)
         }).catch(error=>{
           console.error('There was an error fetching the count!', error);
         })
      
-        axios.get(`${baseUrl}/deactivation/today-renewal-count/`)
+        api.get(`/deactivation/today-renewal-count/`)
         .then(response=>{
           setDeactivaterenewalToday(response.data.count)
         }).catch(error=>{
           console.error('There was an error fetching the count!', error);
         })
      
-        axios.get(`${baseUrl}/deactivation/yesterday-count/`)
+        api.get(`/deactivation/yesterday-count/`)
         .then(response=>{
           setDcountyesterday(response.data.count)
         }).catch(error=>{
           console.error('There was an error fetching the count!', error);
         })
       
-        axios.get(`${baseUrl}/deactivation/yesterday-new-count/`)
+        api.get(`/deactivation/yesterday-new-count/`)
         .then(response=>{
           setdeactivatenewyesterday(response.data.count)
         }).catch(error=>{
           console.error('There was an error fetching the count!', error);
         })
      
-        axios.get(`${baseUrl}/deactivation/yesterday-renewal-count/`)
+        api.get(`/deactivation/yesterday-renewal-count/`)
         .then(response=>{
           setDeactivaterenewalyesterday(response.data.count)
         }).catch(error=>{
@@ -260,63 +262,63 @@ export default function OverallCarts() {
       
 // -----------------------------------Reactivation---------------------------------
       
-        axios.get(`${baseUrl}/reactivation/total/count/`)
+        api.get(`/reactivation/total/count/`)
         .then(response=>{
           setRcount(response.data.count)
         }).catch((error)=>{
                 console.log(error)
         })
      
-        axios.get(`${baseUrl}/reactivation/total/new-count/`)
+        api.get(`/reactivation/total/new-count/`)
         .then(response=>{
           setreactivatenew(response.data.count)
         }).catch((error)=>{
                 console.log(error)
         })
      
-        axios.get(`${baseUrl}/reactivation/total/renewal-count/`)
+        api.get(`/reactivation/total/renewal-count/`)
         .then(response=>{
           setReactivaterenewal(response.data.count)
         }).catch((error)=>{
                 console.log(error)
         })
       
-        axios.get(`${baseUrl}/reactivation/date/today-count/`)
+        api.get(`/reactivation/date/today-count/`)
         .then(response=>{
           setRtodaycount(response.data.count)
         }).catch((error)=>{
                 console.log(error)
         })
      
-        axios.get(`${baseUrl}/reactivation/today-new-count/`)
+        api.get(`/reactivation/today-new-count/`)
         .then(response=>{
           setreactivatenewToday(response.data.count)
         }).catch((error)=>{
                 console.log(error)
         })
      
-        axios.get(`${baseUrl}/reactivation/today-renewal-count/`)
+        api.get(`/reactivation/today-renewal-count/`)
         .then(response=>{
           setReactivaterenewalToday(response.data.count)
         }).catch((error)=>{
                 console.log(error)
         })
       
-        axios.get(`${baseUrl}/reactivation/yesterday-count/`)
+        api.get(`/reactivation/yesterday-count/`)
         .then(response=>{
           setRcountyesterday(response.data.count)
         }).catch((error)=>{
                 console.log(error)
         })
      
-        axios.get(`${baseUrl}/reactivation/yesterday-new-count/`)
+        api.get(`/reactivation/yesterday-new-count/`)
         .then(response=>{
           setreactivatenewyesterday(response.data.count)
         }).catch((error)=>{
                 console.log(error)
         })
      
-        axios.get(`${baseUrl}/reactivation/yesterday-renewal-count/`)
+        api.get(`/reactivation/yesterday-renewal-count/`)
         .then(response=>{
           setReactivaterenewalyesterday(response.data.count)
         }).catch((error)=>{
@@ -329,56 +331,56 @@ export default function OverallCarts() {
     
 
 
-  axios.get(`${baseUrl}/otrdetails/total-otr`)
+  api.get(`/otrdetails/total-otr`)
   .then(response=>{
     setOcount(response.data.count)
   }).catch((error)=>{
           console.log(error)
   })
 
-  axios.get(`${baseUrl}/otrdetails/total-new-otr/`)
+  api.get(`/otrdetails/total-new-otr/`)
   .then(response=>{
     setOTRnew(response.data.count)
   }).catch((error)=>{
           console.log(error)
   })
 
-  axios.get(`${baseUrl}/otrdetails/total-renewal-otr/`)
+  api.get(`/otrdetails/total-renewal-otr/`)
   .then(response=>{
     setOTRrenewal(response.data.count)
   }).catch((error)=>{
           console.log(error)
   })
 
-  axios.get(`${baseUrl}/otrdetails/today-otr/`)
+  api.get(`/otrdetails/today-otr/`)
   .then(response=>{
     setOtodaycount(response.data.count)
   }).catch((error)=>{
           console.log(error)
   })
 
-  axios.get(`${baseUrl}/otrdetails/today-new-otr/`)
+  api.get(`/otrdetails/today-new-otr/`)
   .then(response=>{
     setOTRnewToday(response.data.count)
   }).catch((error)=>{
           console.log(error)
   })
 
-  axios.get(`${baseUrl}/otrdetails/today-renewal-otr/`)
+  api.get(`/otrdetails/today-renewal-otr/`)
   .then(response=>{
     setOTRrenewalToday(response.data.count)
   }).catch((error)=>{
           console.log(error)
   })
 
-  axios.get(`${baseUrl}/otrdetails/yesterday-otr/`)
+  api.get(`/otrdetails/yesterday-otr/`)
   .then(response=>{
     setOcountyesterday(response.data.count)
   }).catch((error)=>{
           console.log(error)
   })
 
-  axios.get(`${baseUrl}/otrdetails/yesterday-new-otr/`)
+  api.get(`/otrdetails/yesterday-new-otr/`)
   .then(response=>{
     setOTRnewyesterday(response.data.count)
   }).catch((error)=>{
@@ -387,7 +389,7 @@ export default function OverallCarts() {
 
 
 
-     axios.get(`${baseUrl}/otrdetails/yesterday-renewal-otr/`)
+     api.get(`/otrdetails/yesterday-renewal-otr/`)
      .then(response=>{
       setOTRrenewalyesterday(response.data.count)
     }).catch((error)=>{

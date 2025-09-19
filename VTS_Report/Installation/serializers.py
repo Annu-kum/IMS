@@ -5,6 +5,7 @@ from rest_framework import serializers
 from .models import InstallatonModels
 from datetime import datetime
 from Dealer.models import Dealersmodel
+from account.serializers import SessionYearSerializer
 
 
 # class InstallSerializers(serializers.ModelSerializer):
@@ -117,7 +118,7 @@ class InstallSerializers(serializers.ModelSerializer):
         instance.save()
         return instance
 
-class InstallpostSerializers(serializers.ModelSerializer):
+class InstallpostSerializers(SessionYearSerializer):
     Dealer_Name = serializers.PrimaryKeyRelatedField(queryset=Dealersmodel.objects.all())
 
     InstallationDate = serializers.DateField(required=False, allow_null=True)
@@ -171,7 +172,7 @@ class InstallpostSerializers(serializers.ModelSerializer):
         return representation
 
 
-class InstallupdatesSerializers(serializers.ModelSerializer):
+class InstallupdatesSerializers(SessionYearSerializer):
     Installation_letterHead = serializers.SerializerMethodField()
     Dealer_Name = serializers.SlugRelatedField(slug_field='Dealer_Name', queryset=Dealersmodel.objects.all())
     # Installation_letterHead_url = serializers.SerializerMethodField()

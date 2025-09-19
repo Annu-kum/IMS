@@ -24,8 +24,12 @@ export default function BulkUpload(props) {
   const[uploadFile,setuploadFile]=React.useState([])
   const[letterHead,setletterHead]=React.useState([])
   const FileInputref = React.useRef(null)
-  const sampleFileUrl = 'http://127.0.0.1:8000/images/InstallationSample.xlsx';
-
+  const sampleFileUrl = 'http://127.0.0.1:3000/images/InstallationSample.xlsx';
+  const token = localStorage.getItem('Token');  
+  const headers = {
+     'Content-Type': 'multipart/form-data',
+     'Authorization': `Token ${token}`,
+   };
  
     const downloadSampleFile = async (url) => {
         try {
@@ -100,9 +104,7 @@ export default function BulkUpload(props) {
     formData.append('letterhead',letterHead);
     try {
       const response = await axios.post(`${baseUrl}/installation/import/`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
+       headers: headers,
       });
       toast.success(response.data.message,{
         theme:"light",
@@ -112,6 +114,7 @@ export default function BulkUpload(props) {
       setuploadFile('')
       handleClose();
     } catch (error) {
+      console.log(error)
       if (error.response) {
         toast.error('Error: Due to Duplicate value',{
           theme:"light",

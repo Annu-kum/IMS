@@ -22,7 +22,8 @@ from rest_framework.exceptions import NotFound
 from django.core.files.storage import default_storage
 from rest_framework.views import APIView
 from django.core.files.base import ContentFile
-
+from account.utility import SessionYearMixin
+from account.utility import get_user_session_year
 logger = logging.getLogger(__name__)
 
 class Paginations(PageNumberPagination):
@@ -30,13 +31,16 @@ class Paginations(PageNumberPagination):
     page_size_query_param = 'page_size'
     max_page_size = 1000
 
-class GetInstallviewset(generics.ListAPIView):
+class GetInstallviewset(SessionYearMixin,generics.ListAPIView):
     queryset = InstallatonModels.objects.all().order_by('MILLER_NAME')
     serializer_class = InstallSerializers
     permission_classes = [IsAuthenticated]
     filter_backends = [filters.SearchFilter]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
-    search_fields = ['MILLER_TRANSPORTER_ID','MILLER_NAME','Device_Name','GPS_IMEI_NO','SIM_NO','NewRenewal','OTR','vehicle1','Employee_Name',]
+    search_fields = [
+        'MILLER_TRANSPORTER_ID','MILLER_NAME','Device_Name','GPS_IMEI_NO',
+        'SIM_NO','NewRenewal','OTR','vehicle1','Employee_Name',
+    ]
     lookup_field = 'MILLER_TRANSPORTER_ID'
     pagination_class = Paginations
 
@@ -44,7 +48,7 @@ class GetInstallviewset(generics.ListAPIView):
         return {'request': self.request}
 
     def get_queryset(self):
-        queryset = InstallatonModels.objects.all().order_by('-id')
+        queryset = super().get_queryset().order_by('-id')  # 👈 SessionYearMixin applied
         start_date = self.request.query_params.get('start_date', None)
         end_date = self.request.query_params.get('end_date', None)
         
@@ -55,7 +59,7 @@ class GetInstallviewset(generics.ListAPIView):
                 queryset = queryset.filter(InstallationDate__range=(start_date, end_date))
             except ValueError as e:
                 logger.error(f"Date parsing error: {e}")
-                pass  # Handle the error as needed
+                pass  
         for backend in list(self.filter_backends):
             queryset = backend().filter_queryset(self.request, queryset, self)
         return queryset
@@ -63,31 +67,29 @@ class GetInstallviewset(generics.ListAPIView):
     def get(self, request, *args, **kwargs):
         export = request.query_params.get('export', None)
         MILLER_TRANSPORTER_ID = kwargs.get('MILLER_TRANSPORTER_ID', None)
+
         if MILLER_TRANSPORTER_ID:
-            # Use filter instead of get
-            miller_instances = InstallatonModels.objects.filter(MILLER_TRANSPORTER_ID=MILLER_TRANSPORTER_ID)
+            # 👇 session_year applied here also
+            miller_instances = super().get_queryset().filter(MILLER_TRANSPORTER_ID=MILLER_TRANSPORTER_ID)
             if miller_instances.exists():
                 serializer = self.get_serializer(miller_instances, many=True)
                 return Response(serializer.data, status=status.HTTP_200_OK)
             else:
                 return Response({'error': 'Miller not found'}, status=status.HTTP_404_NOT_FOUND)
 
-        # Fallback to the default queryset if MILLER_TRANSPORTER_ID is not provided
         queryset = self.get_queryset()
-        # Logic for ec
+        
         if export == 'true':
             serializer = self.get_serializer(queryset, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
         page = self.paginate_queryset(queryset)
-
         if page is not None:
-         serializer = self.get_serializer(page, many=True)
-         return self.get_paginated_response(serializer.data)
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-
 class GetInstallurlviewset(generics.ListAPIView):
     queryset = InstallatonModels.objects.all().order_by('id')
     serializer_class = InstallSerializers
@@ -109,6 +111,7 @@ class GetInstallurlviewset(generics.ListAPIView):
                 return Response(serializer.data, status=200)
             except InstallatonModels.DoesNotExist:
                 raise NotFound(f'Data with id {id} does not exist')
+              
 
         # Return all installations with pagination
         return super().get(request, *args, **kwargs) 
@@ -134,7 +137,7 @@ class postInstallviewset(generics.CreateAPIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class DeleteInstallviewsets(generics.DestroyAPIView):
+class DeleteInstallviewsets(generics.DestroyAPIView,SessionYearMixin):
     queryset = InstallatonModels.objects.all().order_by('id')
     serializer_class = InstallSerializers
     permission_classes = [IsAuthenticated]
@@ -157,7 +160,7 @@ class DeleteInstallviewsets(generics.DestroyAPIView):
                 return Response({'error': 'Record does not exist'}, status=status.HTTP_404_NOT_FOUND)
         return Response({'error': 'ID parameter is required'}, status=status.HTTP_400_BAD_REQUEST)
 
-class updateInstallviewsets(generics.UpdateAPIView):
+class updateInstallviewsets(SessionYearMixin,generics.UpdateAPIView):
     queryset = InstallatonModels.objects.all().order_by('MILLER_NAME')
     serializer_class = InstallupdatesSerializers
     permission_classes = [AllowAny]
@@ -186,7 +189,7 @@ class updateInstallviewsets(generics.UpdateAPIView):
 
 
 
-class UpdateLetterHeadViewSets(generics.UpdateAPIView):
+class UpdateLetterHeadViewSets(SessionYearMixin,generics.UpdateAPIView):
     queryset = InstallatonModels.objects.all().order_by('MILLER_NAME')
     serializer_class = InstallSerializers
     permission_classes = [AllowAny]
@@ -239,109 +242,98 @@ def get_file_url(request, id):
     else:
         return JsonResponse({'error': 'File not found'}, status=404)
 
-class InstallCountView(generics.ListAPIView):
+class BaseCountView(SessionYearMixin, generics.ListAPIView):
     permission_classes = [AllowAny]
+    serializer_class = InstallSerializers  # DRF ke liye zaroori
+    queryset = InstallatonModels.objects.all()  # Base queryset
 
-    def get(self, request, *args, **kwargs):
-        count = InstallatonModels.objects.count()
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        return Response({'count': queryset.count()}, status=status.HTTP_200_OK)
+
+
+
+class InstallCountView(SessionYearMixin, generics.ListAPIView):
+    permission_classes = [AllowAny]
+    serializer_class = InstallSerializers
+    queryset = InstallatonModels.objects.all()
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()   # ✅ SessionYearMixin filter apply karega
+        count = queryset.count()
         return Response({'count': count}, status=status.HTTP_200_OK)
 
-
-class NewInstallCountView(generics.ListAPIView):
-    permission_classes = [AllowAny]
-
-    def get(self, request, *args, **kwargs):
-        new_count = InstallatonModels.objects.filter(NewRenewal__iexact='New').count()
-        return Response({'count': new_count}, status=status.HTTP_200_OK)
-    
-class RenewalInstallCountView(generics.ListAPIView):
-    permission_classes = [AllowAny]
-
-    def get(self, request, *args, **kwargs):
-        new_count = InstallatonModels.objects.filter(NewRenewal__iexact='Renewal').count()
+class NewInstallCountView(BaseCountView):
+    def list(self, request, *args, **kwargs):
+        new_count = self.get_queryset().filter(NewRenewal__iexact='New').count()
         return Response({'count': new_count}, status=status.HTTP_200_OK)
 
-class TodayInstallCountView(generics.ListAPIView):
-    permission_classes = [AllowAny]
 
-    def get(self, request, *args, **kwargs):
+class RenewalInstallCountView(BaseCountView):
+    def list(self, request, *args, **kwargs):
+        renewal_count = self.get_queryset().filter(NewRenewal__iexact='Renewal').count()
+        return Response({'count': renewal_count}, status=status.HTTP_200_OK)
+
+
+class TodayInstallCountView(BaseCountView):
+    def list(self, request, *args, **kwargs):
         today = timezone.now().date()
         tomorrow = today + timedelta(days=1)
-        new_count = InstallatonModels.objects.filter(
-                         InstallationDate__gte=today, 
-                         InstallationDate__lt=tomorrow,
-                         ).count()
-        return Response({'count': new_count}, status=status.HTTP_200_OK)
+        today_count = self.get_queryset().filter(
+            InstallationDate__gte=today, InstallationDate__lt=tomorrow
+        ).count()
+        return Response({'count': today_count}, status=status.HTTP_200_OK)
 
 
-
-class TodayNewInstallCountView(generics.ListAPIView):
-    permission_classes = [AllowAny]
-
-    def get(self, request, *args, **kwargs):
+class TodayNewInstallCountView(BaseCountView):
+    def list(self, request, *args, **kwargs):
         today = timezone.now().date()
         tomorrow = today + timedelta(days=1)
-        new_count = InstallatonModels.objects.filter(
-            InstallationDate__gte=today,
-            InstallationDate__lt=tomorrow,
+        today_new_count = self.get_queryset().filter(
+            InstallationDate__gte=today, InstallationDate__lt=tomorrow,
             NewRenewal__iexact='New'
         ).count()
-        return Response({'count': new_count}, status=status.HTTP_200_OK)
-    
+        return Response({'count': today_new_count}, status=status.HTTP_200_OK)
 
-class TodayRenewalInstallCountView(generics.ListAPIView):
-    permission_classes = [AllowAny]
 
-    def get(self, request, *args, **kwargs):
+class TodayRenewalInstallCountView(BaseCountView):
+    def list(self, request, *args, **kwargs):
         today = timezone.now().date()
         tomorrow = today + timedelta(days=1)
-        new_count = InstallatonModels.objects.filter(
-            InstallationDate__gte=today,
-            InstallationDate__lt=tomorrow,
+        today_renewal_count = self.get_queryset().filter(
+            InstallationDate__gte=today, InstallationDate__lt=tomorrow,
             NewRenewal__iexact='Renewal'
         ).count()
-        return Response({'count': new_count}, status=status.HTTP_200_OK)
+        return Response({'count': today_renewal_count}, status=status.HTTP_200_OK)
 
-class YesterdayInstallCountView(generics.ListAPIView):
-    permission_classes = [AllowAny]
 
-    def get(self, request, *args, **kwargs):
-        today = timezone.now().date()
-        yesterday = today - timedelta(days=1)
-        yesterday_count = InstallatonModels.objects.filter(InstallationDate=yesterday).count()
+class YesterdayInstallCountView(BaseCountView):
+    def list(self, request, *args, **kwargs):
+        yesterday = timezone.now().date() - timedelta(days=1)
+        yesterday_count = self.get_queryset().filter(InstallationDate=yesterday).count()
         return Response({'count': yesterday_count}, status=status.HTTP_200_OK)
 
 
-
-class YesterdayNewInstallCountView(generics.ListAPIView):
-    permission_classes = [AllowAny]
-
-    def get(self, request, *args, **kwargs):
-        today = timezone.now().date()
-        yesterday = today - timedelta(days=1)
-        new_count = InstallatonModels.objects.filter(
-            InstallationDate=yesterday,
-            NewRenewal__iexact='New'
+class YesterdayNewInstallCountView(BaseCountView):
+    def list(self, request, *args, **kwargs):
+        yesterday = timezone.now().date() - timedelta(days=1)
+        yesterday_new_count = self.get_queryset().filter(
+            InstallationDate=yesterday, NewRenewal__iexact='New'
         ).count()
-        return Response({'count': new_count}, status=status.HTTP_200_OK)
+        return Response({'count': yesterday_new_count}, status=status.HTTP_200_OK)
 
-class YesterdayRenewalInstallCountView(generics.ListAPIView):
-    permission_classes=[AllowAny]
 
-    def get(self, request, *args, **kwargs):
-
-        today=timezone.now().date()
-        yesterday = today - timedelta(days=1)
-        renewal_count = InstallatonModels.objects.filter(
-            InstallationDate=yesterday,
-            NewRenewal__iexact='Renewal'
+class YesterdayRenewalInstallCountView(BaseCountView):
+    def list(self, request, *args, **kwargs):
+        yesterday = timezone.now().date() - timedelta(days=1)
+        yesterday_renewal_count = self.get_queryset().filter(
+            InstallationDate=yesterday, NewRenewal__iexact='Renewal'
         ).count()
-        return Response({'count':renewal_count},status=status.HTTP_200_OK)
-    
+        return Response({'count': yesterday_renewal_count}, status=status.HTTP_200_OK)
 
 class BulkImportView(generics.ListCreateAPIView):
     parser_classes = [MultiPartParser, FormParser]
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
     def post(self, request):
         # Get the uploaded files
         excel_file = request.FILES.get("file")
@@ -372,6 +364,9 @@ class BulkImportView(generics.ListCreateAPIView):
             return Response({"error": f"Missing columns: {missing_cols}"}, status=400)
 # Replace NaN values with empty strings
         df = df.fillna("")
+        session_year = get_user_session_year(request.user)
+        if not session_year:
+            return Response({"error": "Session year not found for this user."}, status=400)
 # Initialize list for bulk creation
         entries = []
 # Iterate through the rows and create InstallatonModels instances
@@ -380,6 +375,16 @@ class BulkImportView(generics.ListCreateAPIView):
                 # Fetch or validate the dealer instance
                 dealer_instance = Dealersmodel.objects.get(Dealer_Name=row["Dealer_Name"])
 # Create model instance
+                # Parse InstallationDate to YYYY-MM-DD format
+                installation_date_str = str(row["InstallationDate"]).strip().replace("“", "").replace("”", "")
+                try:
+                    installation_date = datetime.strptime(installation_date_str, "%d-%m-%Y").date()
+                except ValueError:
+                    try:
+                        installation_date = datetime.strptime(installation_date_str, "%Y-%m-%d").date()
+                    except ValueError:
+                        return Response({"error": f"Error processing row: InstallationDate '{installation_date_str}' is not in a recognized format (expected DD-MM-YYYY or YYYY-MM-DD)."}, status=400)
+
                 entry = InstallatonModels(
                     MILLER_TRANSPORTER_ID=row["MILLER_TRANSPORTER_ID"],
                     MILLER_NAME=row["MILLER_NAME"],
@@ -395,7 +400,7 @@ class BulkImportView(generics.ListCreateAPIView):
                     vehicle1=row["vehicle1"],
                     vehicle2=row["vehicle2"],
                     vehicle3=row["vehicle3"],
-                    InstallationDate=row["InstallationDate"],
+                    InstallationDate=installation_date,
                     Employee_Name=row["Employee_Name"],
                     Device_Fault=row["Device_Fault"],
                     Fault_Reason=row["Fault_Reason"],
@@ -403,6 +408,7 @@ class BulkImportView(generics.ListCreateAPIView):
                     Remark1=row["Remark1"],
                     Remark2=row["Remark2"],
                     Remark3=row["Remark3"],
+                    session_year=session_year  # Set session_year if needed
                 )
                 entry.save()
 # Reset the file stream for each entry
@@ -433,7 +439,12 @@ class BulkUpdateLetterHeadView(APIView):
             return Response({'error': 'No file uploaded'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            if not InstallatonModels.objects.filter(flag='new').exists():
+            session_year = get_user_session_year(request.user)
+
+            if not session_year:
+                return Response({'error': 'Session year not set for this user'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            if not InstallatonModels.objects.filter(flag='new',session_year=session_year).exists():
                 return Response({'error': 'No Excel data is present.'}, 
                                 status=status.HTTP_400_BAD_REQUEST)
 
@@ -441,10 +452,10 @@ class BulkUpdateLetterHeadView(APIView):
             file_path = default_storage.save(f'installation_letterheads/{file.name}', file)
 
             
-            rows_updated = InstallatonModels.objects.filter(flag='new').update(Installation_letterHead=file_path)
+            rows_updated = InstallatonModels.objects.filter(flag='new',session_year=session_year).update(Installation_letterHead=file_path)
 
             # Update the flag field from 'new' to 'old'
-            InstallatonModels.objects.filter(flag='new').update(flag='old')
+            InstallatonModels.objects.filter(flag='new',session_year=session_year).update(flag='old')
 
             return Response({
                 'message': f'Letterhead updated for {rows_updated} entries and flag updated to "old".',

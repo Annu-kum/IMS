@@ -19,41 +19,64 @@ from rest_framework.status import (
 )
 
 from django.conf import settings
-from account.models import User
-from .serializers import UserSerializer
+from account.models import User, SessionYear
+from .serializers import UserSerializer, SessionYearListSerializer
 from rest_framework.views import APIView
 from django.contrib.auth.hashers import check_password
 from django.utils.decorators import method_decorator
-
-# Create your views here.
+from .models import UserSessionYear
 class UserLogin(APIView):
-    #authentication_classes = [SessionAuthentication, TokenAuthentication, BasicAuthentication]
     permission_classes = [AllowAny]
+
     def post(self, request):
-        login_data = json.loads(request.body.decode())
-        user, username = None, None
-        if 'username' in login_data and 'password' in login_data:
-            username, password = login_data["username"], login_data["password"]
+        login_data = request.data  # DRF handles JSON body
+        username = login_data.get("username")
+        password = login_data.get("password")
+        session_year = login_data.get("session_year")  #  New field
+
+        if not username or not password:
+            return Response({'status': 'Username & Password required'}, status=HTTP_400_BAD_REQUEST)
+
+        try:
             user = User.objects.get(username=username)
-            if user is not None and user.is_active is False:
-                return Response({'status': 'User Verification is Pending'}, status=HTTP_400_BAD_REQUEST)
-               # return self.user_profile(user.username)
-            user = authenticate(username=username, password=password)
-        else:
-            return Response({'status': 'Invalid Login request.'}, status=HTTP_400_BAD_REQUEST)
+        except User.DoesNotExist:
+            return Response({'status': 'User not found'}, status=HTTP_404_NOT_FOUND)
+
+        if not user.is_active:
+            return Response({'status': 'User Verification is Pending'}, status=HTTP_400_BAD_REQUEST)
+
+        user = authenticate(username=username, password=password)
         if not user:
             return Response({'status': "Invalid Credentials"}, status=HTTP_404_NOT_FOUND)
-        username = user.username
-        return self.user_profile(username)
 
-    def user_profile(self, username):
-        user = User.objects.get(username=username)
-        token,_ = Token.objects.get_or_create(user=user)
+        #  Generate or get token
+        token, _ = Token.objects.get_or_create(user=user)
+
+        #  Save session_year mapping
+        if session_year:
+            UserSessionYear.objects.update_or_create(
+                user=user,
+                token=token,
+                defaults={"session_year": session_year}
+            )
+
+        return self.user_profile(user, token)
+
+    def user_profile(self, user, token):
         user.last_login = datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
         user.save()
         result = UserSerializer(user).data
-        return Response({"msg":"successfully login","Token":token.key},status=HTTP_200_OK)
 
+        # fetch latest session_year for this token
+        session_obj = UserSessionYear.objects.filter(user=user, token=token).last()
+        session_year = session_obj.session_year if session_obj else None
+
+        return Response({
+            "msg": "successfully login",
+            "Token": token.key,
+            "session_year": session_year,
+            "user": result
+        }, status=HTTP_200_OK)
 
 class IsUserExists(APIView):
     permission_classes = [AllowAny]
@@ -152,11 +175,27 @@ class WhoAmI(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        user = request.user
+        token = request.auth  #  current token from request
+
+        # fetch latest session_year for this token
+        session_obj = UserSessionYear.objects.filter(user=user, token=token).last()
+        session_year = session_obj.session_year if session_obj else None
         return Response({
-            "id": request.user.id,
-            "username": request.user.username,
-            "email": request.user.email,
-            "is_superuser": request.user.is_superuser,
-            "first_name": request.user.first_name,
-            "last_name": request.user.last_name,
+            "id": user.id,
+            "username": user.username,
+            "email": user.email,
+            "is_superuser": user.is_superuser,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "session_year": session_year,   
         })
+    
+    
+class SessionYearListView(APIView):
+    permission_classes = [AllowAny]  # AllowAny
+
+    def get(self, request, *args, **kwargs):
+        session_years = SessionYear.objects.filter(is_active=True).order_by('year')
+        serializer = SessionYearListSerializer(session_years, many=True)
+        return Response(serializer.data)
