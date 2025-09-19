@@ -6,6 +6,7 @@ from django.conf import settings
 from logmodels.models import LogModel
 from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
+from account.models import SessionYearBase
 # # Create your models here.
 
 # # https://github.com/MoTechStore/Django-4-and-React-JS-18-File-Upload-and-Download/tree/main
@@ -23,7 +24,7 @@ def validate_file_extension(value):
         raise ValidationError(f'Unsupported file extension. Supported extensions are: {", ".join(valid_extensions)}')
 
 
-class InstallatonModels(models.Model):
+class InstallatonModels(SessionYearBase):
     id = models.AutoField(primary_key=True)
     MILLER_TRANSPORTER_ID = models.CharField(max_length=15,blank=True)
     MILLER_NAME = models.CharField(max_length=200,blank=True)
@@ -49,7 +50,8 @@ class InstallatonModels(models.Model):
     Remark3 = models.CharField(max_length=350,blank=True)
     Installation_letterHead = models.FileField(upload_to='installation_letterheads/',validators=[validate_file_extension],null=True,blank=True,default='')
     flag=models.CharField(max_length=15,null=True,default='old')
-    
+        # 👇 New field for session-year
+ 
 
     
     # def __str__(self):

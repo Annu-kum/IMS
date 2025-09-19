@@ -37,3 +37,12 @@ class UserAdmin(BaseUserAdmin):
         )
 
 admin.site.register(models.User, UserAdmin)
+
+@admin.register(models.SessionYear)
+class SessionYearListAdmin(admin.ModelAdmin):
+    list_display = ['year', 'is_active']
+    list_filter = ['is_active']
+    search_fields = ['year']
+    ordering = ['-year']
+    list_per_page = 20
+    list_max_show_all =50
