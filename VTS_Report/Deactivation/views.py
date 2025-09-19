@@ -16,7 +16,8 @@ import pandas as pd
 from Dealer.models import Dealersmodel
 from rest_framework.exceptions import NotFound
 from django.core.files.base import ContentFile
-
+from account.utility import get_user_session_year
+from account.utility import SessionYearMixin
 logger = logging.getLogger(__name__)
 
 
@@ -25,7 +26,7 @@ class Paginations(PageNumberPagination):
     page_size_query_param = 'page_size'
     max_page_size = 1000
 
-class GetDeactiveviewset(generics.ListAPIView):
+class GetDeactiveviewset(SessionYearMixin,generics.ListAPIView):
     queryset = DeactivationModels.objects.all().order_by('MILLER_NAME')
     serializer_class = DeactivateSerializers
     permission_classes = [AllowAny]
@@ -39,7 +40,7 @@ class GetDeactiveviewset(generics.ListAPIView):
         return {'request': self.request}
 
     def get_queryset(self):
-        queryset = DeactivationModels.objects.all().order_by('-id')
+        queryset = super().get_queryset().order_by('-id')
         start_date = self.request.query_params.get('start_date', None)
         end_date = self.request.query_params.get('end_date', None)
         
@@ -61,7 +62,7 @@ class GetDeactiveviewset(generics.ListAPIView):
         MILLER_TRANSPORTER_ID = kwargs.get('MILLER_TRANSPORTER_ID', None)
         if MILLER_TRANSPORTER_ID:
             # Use filter instead of get
-            miller_instances = DeactivationModels.objects.filter(MILLER_TRANSPORTER_ID=MILLER_TRANSPORTER_ID)
+            miller_instances = super().get_queryset().filter(MILLER_TRANSPORTER_ID=MILLER_TRANSPORTER_ID)
             if miller_instances.exists():
                 serializer = self.get_serializer(miller_instances, many=True)
                 return Response(serializer.data, status=status.HTTP_200_OK)
@@ -183,7 +184,7 @@ class updateDeactivateviewsets(generics.UpdateAPIView):
     def put(self, request, *args, **kwargs):
         return self.update(request, *args, partial=False)
 
-class UpdatedeactivateLetterHeadViewSets(generics.UpdateAPIView):
+class UpdatedeactivateLetterHeadViewSets(SessionYearMixin,generics.UpdateAPIView):
     queryset = DeactivationModels.objects.all().order_by('MILLER_NAME')
     serializer_class = DeactivateSerializers
     permission_classes = [AllowAny]
@@ -234,51 +235,53 @@ def get_file_url(request, id):
         return response
     else:
         return JsonResponse({'error': 'File not found'}, status=404)
+class BaseCountView(SessionYearMixin, generics.ListAPIView):
+    permission_classes = [AllowAny]
+    serializer_class = DeactivateSerializers  # DRF ke liye zaroori
+    queryset = DeactivationModels.objects.all()  # Base queryset
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        return Response({'count': queryset.count()}, status=status.HTTP_200_OK)
+
+class DeactivationcountView(BaseCountView):
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()   #  SessionYearMixin filter apply karega
+        count = queryset.count()
+        return Response({'count': count}, status=status.HTTP_200_OK)
 
 
-class DeactivationcountView(generics.ListAPIView):
-    permission_classes=[AllowAny]
+class NewDeactivateCountView(BaseCountView):
 
-    def get(self,request, *args, **kwargs):
-        count=DeactivationModels.objects.count()
-        return Response({'count':count},status=status.HTTP_200_OK)
-
-
-class NewDeactivateCountView(generics.ListAPIView):
-    permission_classes=[AllowAny]
-
-    def get(self,request,*args, **kwargs):
-        new_count = DeactivationModels.objects.filter(NewRenewal__iexact='New').count()
+    def list(self,request,*args, **kwargs):
+        new_count = self.get_queryset().filter(NewRenewal__iexact='New').count()
         return Response({'count':new_count},status=status.HTTP_200_OK)
     
-class RenewalDeactivationCountView(generics.ListAPIView):
-    permission_classes=[AllowAny]
-
-    def get(self,request,*args,**kwargs):
-        renewal_count = DeactivationModels.objects.filter(NewRenewal__iexact='Renewal').count()
+class RenewalDeactivationCountView(BaseCountView):
+    
+    def list(self,request,*args,**kwargs):
+        renewal_count = self.get_queryset().filter(NewRenewal__iexact='Renewal').count()
         return Response({'count':renewal_count},status=status.HTTP_200_OK)
     
 
-class TodaydeactivateCountview(generics.ListAPIView):
-    permission_classes=[AllowAny]
-
-    def get(self,request,*args,**kwargs):
+class TodaydeactivateCountview(BaseCountView):
+    
+    def list(self,request,*args,**kwargs):
         today=timezone.now().date()
         tomorrow = today + timedelta(days=1)
-        new_count = DeactivationModels.objects.filter(
+        new_count = self.get_queryset().filter(
             DeactivationDate__gte=today, 
             DeactivationDate__lt=tomorrow
             ).count()
                      
         return Response({'count':new_count},status=status.HTTP_200_OK)
 
-class TodayNewDeactivationCountView(generics.ListAPIView):
-    permission_classes=[AllowAny]
-
-    def get(self,request,*args,**kwargs):
+class TodayNewDeactivationCountView(BaseCountView):
+    
+    def list(self,request,*args,**kwargs):
         today=timezone.now().date()
         tomorrow=today + timedelta(days=1)
-        new_count=DeactivationModels.objects.filter(
+        new_count=self.get_queryset().filter(
                                DeactivationDate__gte=today,
                                DeactivationDate__lt=tomorrow,
                                NewRenewal__iexact='New'
@@ -286,48 +289,45 @@ class TodayNewDeactivationCountView(generics.ListAPIView):
         return Response({'count':new_count},status=status.HTTP_200_OK)
 
 
-class TodayRenewalDeactivationCountView(generics.ListAPIView):
-    permission_classes=[AllowAny]
+class TodayRenewalDeactivationCountView(BaseCountView):
 
-    def get(self,request,*args,**kwargs):
+    def list(self,request,*args,**kwargs):
         today=timezone.now().date()
         tomorrow=today + timedelta(days=1)
 
-        renewal_count=DeactivationModels.objects.filter(
+        renewal_count=self.get_queryset().filter(
             DeactivationDate__gte=today,
             DeactivationDate__lt=tomorrow,
             NewRenewal__iexact='Renewal').count()
         return Response({'count':renewal_count},status=status.HTTP_200_OK)
 
-class YesterdayDeactivateCountViews(generics.ListAPIView):
-    permission_classes=[AllowAny]
+class YesterdayDeactivateCountViews(BaseCountView):
 
-    def get(self,request,*args,**kwargs):
+    def list(self,request,*args,**kwargs):
         today=timezone.now().date()
         yesterday= today - timedelta(days=1)
-        yesterday_count=DeactivationModels.objects.filter(DeactivationDate=yesterday).count()
+        yesterday_count=self.get_queryset().filter(DeactivationDate=yesterday).count()
         return Response({'count':yesterday_count},status=status.HTTP_200_OK)
 
-class YesterdayNewDeactivationContViews(generics.ListAPIView):
-    permission_classes=[AllowAny]
-
-    def get(self,request,*args,**kwargs):
+class YesterdayNewDeactivationContViews(BaseCountView):
+    
+    def list(self,request,*args,**kwargs):
         today=timezone.now().date()
         yesterday=today - timedelta(days=1)
 
-        new_count=DeactivationModels.objects.filter(
+        new_count=self.get_queryset().filter(
             DeactivationDate=yesterday,
             NewRenewal__iexact='New'
         ).count()
         return Response({'count':new_count},status=status.HTTP_200_OK)
 
-class YesterdayRenewalDeactivationCountViews(generics.ListAPIView):
-   permission_classes=[AllowAny]
-   def get(self, request, *args, **kwargs):
+class YesterdayRenewalDeactivationCountViews(BaseCountView):
+ 
+   def list(self, request, *args, **kwargs):
             today=timezone.now().date()
             yesterday=today - timedelta(days=1)
 
-            renewal_count=DeactivationModels.objects.filter(
+            renewal_count=self.get_queryset().filter(
                 DeactivationDate=yesterday,
                 NewRenewal__iexact='Renewal').count()
             return Response({'count':renewal_count},status=status.HTTP_200_OK)
@@ -370,11 +370,22 @@ class BulkImportView(generics.ListCreateAPIView):
             return Response({"error": f"Missing columns: {missing_cols}"}, status=400)
 
         df = df.fillna("")
-
+        session_year = get_user_session_year(request.user)
+        if not session_year:
+            return Response({"error": "Session year not found for this user."}, status=400)
         # Process each row
         entries=[]
         for _, row in df.iterrows():
             try:
+                deactivation_date_str = str(row["DeactivationDate"]).strip().replace("“", "").replace("”", "")
+                try:
+                    deactivation_date = datetime.strptime(deactivation_date_str, "%d-%m-%Y").date()
+                except ValueError:
+                    try:
+                        deactivation_date = datetime.strptime(deactivation_date_str, "%Y-%m-%d").date()
+                    except ValueError:
+                        return Response({"error": f"Error processing row: InstallationDate '{deactivation_date_str}' is not in a recognized format (expected DD-MM-YYYY or YYYY-MM-DD)."}, status=400)
+
                 # if not DeactivationModels.objects.filter(MILLER_TRANSPORTER_ID=row['MILLER_TRANSPORTER_ID']).exists():
                     entry = DeactivationModels(
                         MILLER_TRANSPORTER_ID=row['MILLER_TRANSPORTER_ID'],
@@ -391,7 +402,7 @@ class BulkImportView(generics.ListCreateAPIView):
                         vehicle1=row['vehicle1'],
                         vehicle2=row['vehicle2'],
                         vehicle3=row['vehicle3'],
-                        DeactivationDate=row['DeactivationDate'],
+                        DeactivationDate=deactivation_date,
                         Employee_Name=row['Employee_Name'],
                         Device_Fault=row['Device_Fault'],
                         Fault_Reason=row['Fault_Reason'],
@@ -399,6 +410,7 @@ class BulkImportView(generics.ListCreateAPIView):
                         Remark1=row['Remark1'],
                         Remark2=row['Remark2'],
                         Remark3=row['Remark3'],
+                        session_year=session_year  # Set session_year if needed
                     )
                     entry.save()
 
