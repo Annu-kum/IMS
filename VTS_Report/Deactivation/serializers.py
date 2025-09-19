@@ -2,7 +2,7 @@ from rest_framework import serializers
 from .models import DeactivationModels
 from datetime import datetime
 from Dealer.models import Dealersmodel
-
+from account.serializers import SessionYearSerializer
 
 
 class DeactivateSerializers(serializers.ModelSerializer):
@@ -53,7 +53,7 @@ class DeactivateSerializers(serializers.ModelSerializer):
    
 
 
-class DeactivatepostSerializers(serializers.ModelSerializer):
+class DeactivatepostSerializers(SessionYearSerializer,serializers.ModelSerializer):
     DeactivationDate = serializers.DateField(required=False, allow_null=True)
     Deactivation_letterHead = serializers.FileField(write_only=True)
     # Installation_letterHead_url = serializers.SerializerMethodField()
@@ -111,7 +111,7 @@ class DeactivatepostSerializers(serializers.ModelSerializer):
 
 
 
-class DeactivateUpdatesSerializers(serializers.ModelSerializer):
+class DeactivateUpdatesSerializers(SessionYearSerializer,serializers.ModelSerializer):
 
     DeactivationDate = serializers.DateField( required=False, allow_null=True)
     Deactivation_letterHead = serializers.SerializerMethodField()
