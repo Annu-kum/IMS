@@ -14,6 +14,8 @@ from .forms import ImportFileForm
 from .resources import MillersEntrymodelResource
 from rest_framework.parsers import MultiPartParser,FormParser
 from rest_framework.pagination import PageNumberPagination
+from account.utility import SessionYearMixin
+from account.utility import get_user_session_year
 # Create your views here.
 
 
@@ -22,41 +24,48 @@ class Paginations(PageNumberPagination):
     page_size_query_param='page_size'
     max_page_size =1000
 
-class GetMillersviewset(generics.ListAPIView):
+class GetMillersviewset(SessionYearMixin, generics.ListAPIView):
     queryset = MillersEntrymodel.objects.all().order_by('MILLER_TRANSPORTER_ID')
     serializer_class = MillerEntrySerializers
     permission_classes = [IsAuthenticated]
     filter_backends = [filters.SearchFilter]
     search_fields = ['MILLER_NAME']
     lookup_field = 'MILLER_TRANSPORTER_ID'
-    pagination_class= Paginations
+    pagination_class = Paginations
+
     def get(self, request, *args, **kwargs):
         MILLER_TRANSPORTER_ID = kwargs.get('MILLER_TRANSPORTER_ID', None)
-        
+
         if MILLER_TRANSPORTER_ID:
-            try:
-                MILLERID = MillersEntrymodel.objects.get(MILLER_TRANSPORTER_ID=MILLER_TRANSPORTER_ID)
-                serializer = MillerEntrySerializers(MILLERID)
+            #  Use session filtered queryset
+            instance = self.get_queryset().filter(MILLER_TRANSPORTER_ID=MILLER_TRANSPORTER_ID).first()
+            if instance:
+                serializer = MillerEntrySerializers(instance)
                 return Response(serializer.data, status=200)
-            except MillersEntrymodel.DoesNotExist:
-                raise NotFound(f'MillersEntrymodel with MILLER_TRANSPORTER_ID {MILLER_TRANSPORTER_ID} does not exist')
-        
-        result = MillersEntrymodel.objects.all().order_by('MILLER_TRANSPORTER_ID')
-        serializer = MillerEntrySerializers(result, many=True)
+            raise NotFound(f'MillersEntrymodel with MILLER_TRANSPORTER_ID {MILLER_TRANSPORTER_ID} does not exist')
+
+        # Also use session filtered queryset here
+        queryset = self.get_queryset().order_by('MILLER_TRANSPORTER_ID')
+        serializer = MillerEntrySerializers(queryset, many=True)
         return Response(serializer.data, status=200)
-class GetAllMillersviewsets(generics.ListAPIView):
+
+class GetAllMillersviewsets(SessionYearMixin,generics.ListAPIView):
     queryset=MillersEntrymodel.objects.all().order_by('MILLER_NAME')
     serializer_class=MillerEntrySerializers
     permission_classes=[IsAuthenticated]
     filter_backends=[filters.SearchFilter]
     search_fields=['MILLER_NAME']
     pagination_class=Paginations
-class postMillersviewset(generics.CreateAPIView):
+class postMillersviewset(SessionYearMixin,generics.CreateAPIView):
     queryset=MillersEntrymodel.objects.all().order_by('MILLER_NAME')
     serializer_class=MillerEntrySerializers
     permission_classes=[IsAuthenticated]
     filter_backends=[filters.SearchFilter]
     search_fields=['MILLER_NAME']
+
+    def get_queryset(self):
+        # SessionYearMixin will apply session_year filter here
+        return super().get_queryset().order_by('MILLER_NAME')
       
 class DeleteMillersviewsets(generics.DestroyAPIView):
     queryset=MillersEntrymodel.objects.all().order_by('MILLER_NAME')
@@ -123,8 +132,9 @@ class BulkImportView(generics.ListCreateAPIView):
 
             # Replace NaN  values with empty string
             df = df.fillna('')
-
-
+            session_year = get_user_session_year(request.user)
+            if not session_year:
+             return Response({"error": "Session year not found for this user."}, status=400)
             # Iterate through the DataFrame and create model instances
             entries = []
             for _, row in df.iterrows():
@@ -132,7 +142,8 @@ class BulkImportView(generics.ListCreateAPIView):
                     MILLER_TRANSPORTER_ID=row['MILLER_TRANSPORTER_ID'],
                     MILLER_NAME=row['MILLER_NAME'],
                     ContactNo=row['ContactNo'],
-                    district=row['district']
+                    district=row['district'],
+                    session_year=session_year
                 )
                 entries.append(entry)
 
