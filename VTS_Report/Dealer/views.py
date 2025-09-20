@@ -130,7 +130,9 @@ class BulkImportDealersView(APIView):
 
             # Replace NaN values with empty strings
             df = df.fillna('')
-
+            session_year = get_user_session_year(request.user)
+            if not session_year:
+             return Response({"error": "Session year not found for this user."}, status=400)
             # Iterate through the DataFrame and create model instances
             entries = []
             for _, row in df.iterrows():
@@ -139,7 +141,8 @@ class BulkImportDealersView(APIView):
                     contactno1=row['contactno1'],
                     contactno2=row['contactno2'],
                     companyName=row['companyName'],
-                    Remark=row['Remark']
+                    Remark=row['Remark'],
+                    session_year=session_year
                 )
                 entries.append(entry)
 
