@@ -12,6 +12,8 @@ from rest_framework.exceptions import NotFound
 from rest_framework.parsers import MultiPartParser,FileUploadParser,FormParser
 import pandas as pd
 from rest_framework.views import APIView
+from account.utility import get_user_session_year
+from account.utility import SessionYearMixin
 
 class Paginations(PageNumberPagination):
     page_size = 25
@@ -19,30 +21,34 @@ class Paginations(PageNumberPagination):
     max_page_size = 1000
 
 
-class Getdealersviewset(generics.ListAPIView):
+class Getdealersviewset(SessionYearMixin, generics.ListAPIView):
     queryset = Dealersmodel.objects.all().order_by('id')
     serializer_class = DealerSerializers
     permission_classes = [AllowAny]
     filter_backends = [filters.SearchFilter]
     search_fields = ['Dealer_Name']
-    pagination_class= Paginations
+    pagination_class = Paginations
     lookup_field = 'id'
     
+    def get_queryset(self):
+        # SessionYearMixin filter apply karega
+        return super().get_queryset().order_by('id')
+
     def get(self, request, *args, **kwargs):
-        id = kwargs.get('id', None)
+        dealer_id = kwargs.get('id', None)
         
-        if id:
-            try:
-                Id = Dealersmodel.objects.get(id=id)
-                serializer = DealerSerializers(Id)
+        if dealer_id:
+            instance = self.get_queryset().filter(id=dealer_id).first()
+            if instance:
+                serializer = DealerSerializers(instance, context={'request': request})
                 return Response(serializer.data, status=200)
-            except Dealersmodel.DoesNotExist:
-                raise NotFound(f'Dealermodel with id {id} does not exist')
+            raise NotFound(f'Dealermodel with id {dealer_id} does not exist')
         
-        result = Dealersmodel.objects.all().order_by('id')
-        serializer = DealerSerializers(result, many=True)
+        queryset = self.get_queryset()
+        serializer = DealerSerializers(queryset, many=True, context={'request': request})
         return Response(serializer.data, status=200)
-class GetDealerViewset(generics.ListAPIView):
+
+class GetDealerViewset(SessionYearMixin,generics.ListAPIView):
     queryset=Dealersmodel.objects.all().order_by('Dealer_Name')
     serializer_class=DealerSerializers
     permission_classes=[AllowAny]
@@ -55,6 +61,10 @@ class PostDealer(generics.CreateAPIView):
     permission_classes=[AllowAny]
     filter_backends=[filters.SearchFilter]
     search_field=['Dealer_Name']
+
+    def get_queryset(self):
+        # SessionYearMixin will apply session_year filter here
+        return super().get_queryset().order_by('Dealer_Name')
 
 class deleteDealer(generics.DestroyAPIView,generics.ListAPIView):
     queryset=Dealersmodel.objects.all().order_by('Dealer_Name')

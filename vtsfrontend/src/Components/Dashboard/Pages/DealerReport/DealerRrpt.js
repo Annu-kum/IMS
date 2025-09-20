@@ -155,7 +155,7 @@ const refreshBtn=()=>{
 
 
 useEffect(() => {
-  axios.get(`${baseUrl}/otrdetails/getSum/`) 
+  axios.get(`${baseUrl}/otrdetails/getSum/`,{headers}) 
   .then(response => {
     const data = response.data;
     if (data && data.overall_totals) {
