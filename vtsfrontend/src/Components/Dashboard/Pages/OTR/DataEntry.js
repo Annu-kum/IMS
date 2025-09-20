@@ -72,7 +72,12 @@ export default function DataEntry() {
   const[ExpiryDate,setExpirydate]=useState('')
   const[extendedMonth,setExtendedmonth]=useState('')
   const[nextExpirydate,setNextexpirydate]=useState('')
-  
+  const token = localStorage.getItem('Token');
+  const headers = {
+    'content-type': 'application/json',
+    'Authorization': `Token ${token}`,
+    'Accept': 'application/json',
+  };
  
 
   useEffect(() => {
@@ -165,7 +170,7 @@ const num = parseInt(extendedMonth,10)
       ExpiryDate:ExpiryDate,
       extendedMonth:extendedMonth,
       nextExpirydate:nextExpirydate,
-     }).then((res)=>{
+     },{headers:headers}).then((res)=>{
        toast.success("Data saved",{theme:"light",position:"top-center"})
       
        

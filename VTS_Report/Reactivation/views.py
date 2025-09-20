@@ -41,7 +41,7 @@ class GetReactivateviewset(SessionYearMixin,generics.ListAPIView):
         return {'request': self.request}
 
     def get_queryset(self):
-        queryset = self.get_queryset().order_by('-id')
+        queryset = super().get_queryset().order_by('-id')
         start_date = self.request.query_params.get('start_date', None)
         end_date = self.request.query_params.get('end_date', None)
         
@@ -64,7 +64,7 @@ class GetReactivateviewset(SessionYearMixin,generics.ListAPIView):
         MILLER_TRANSPORTER_ID = kwargs.get('MILLER_TRANSPORTER_ID', None)
         if MILLER_TRANSPORTER_ID:
             
-                miller_instance = self.get_queryset().filter(MILLER_TRANSPORTER_ID=MILLER_TRANSPORTER_ID)
+                miller_instance = super().get_queryset().filter(MILLER_TRANSPORTER_ID=MILLER_TRANSPORTER_ID)
                 if miller_instance.exists():
                   serializer = self.get_serializer(miller_instance,many=True)
                   return Response(serializer.data, status=status.HTTP_200_OK)

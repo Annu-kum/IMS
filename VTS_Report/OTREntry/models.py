@@ -2,9 +2,10 @@ from django.db import models
 from logmodels.models import LogModel
 from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
+from account.models import SessionYearBase
 
 # Create your models here.
-class OTRData(models.Model):
+class OTRData(SessionYearBase):
         id=models.AutoField(primary_key=True)
         MILLER_TRANSPORTER_ID=models.CharField(max_length=15,blank=True)
         MILLER_NAME=models.CharField(max_length=150,blank=True)
