@@ -163,7 +163,7 @@ const initialRow = {
 
   const[loadDealers,setLoadealers]=useState([])
   useEffect(() => {
-    axios.get(`${baseUrl}/dealer/getdealer/`)
+    axios.get(`${baseUrl}/dealer/getdealer/`,{headers})
     .then((response) => {
       setLoadealers(response.data.results);
     });

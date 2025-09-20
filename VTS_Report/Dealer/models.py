@@ -1,10 +1,10 @@
 from django.db import models
 from django.core.validators import RegexValidator
 from django.core.exceptions import ValidationError
-
+from account.models import SessionYearBase
 # Create your models here.
 
-class Dealersmodel(models.Model):
+class Dealersmodel(SessionYearBase):
     id=models.AutoField(primary_key=True)
     Dealer_Name=models.CharField(max_length=200)
     contactno1=models.CharField(max_length=12,validators=[RegexValidator(r'^\d{10}$', message="Phone number must be 10 digits")],blank=True,)
