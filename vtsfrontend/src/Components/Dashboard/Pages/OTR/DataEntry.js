@@ -196,7 +196,7 @@ const ITEM_HEIGHT = 48;
   };
   
   useEffect(() => {
-    axios.get(`${baseUrl}/otrentries/getotrdata`)
+    axios.get(`${baseUrl}/otrentries/getotrdata`,{headers})
       .then((res) => {
         const data = res.data;
         setGPS(data)

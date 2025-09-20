@@ -12,6 +12,12 @@ export default function OtrDialog() {
   const [anchorEl, setAnchorEl] = useState(null);
   const [getGPS, setGPS] = useState([]);
   const open = Boolean(anchorEl);
+  const token = localStorage.getItem('Token');
+ const headers = {
+   'content-type': 'application/json',
+   'Authorization': `Token ${token}`,
+   'Accept': 'application/json',
+ };
 
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -22,7 +28,7 @@ export default function OtrDialog() {
   };
 
   useEffect(() => {
-    axios.get(`${baseUrl}/otrentries/getotrdata`)
+    axios.get(`${baseUrl}/otrentries/getotrdata`,{headers})
       .then((res) => {
         const data = res.data;
         console.log(data);
