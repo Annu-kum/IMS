@@ -14,6 +14,7 @@ from datetime import timedelta,datetime
 from Dealer.models import Dealersmodel
 from Dealer.serializers import DealerSerializers
 from rest_framework.pagination import PageNumberPagination
+from account.utility import SessionYearMixin
 # Create your views here.
 
 class Paginations(PageNumberPagination):
@@ -22,36 +23,45 @@ class Paginations(PageNumberPagination):
     max_page_size = 100
 
 
-class OtrDetailsviews(generics.ListAPIView):
-  permission_classes=[AllowAny]
+class OtrDetailsviews(SessionYearMixin, generics.ListAPIView):
+    permission_classes = [AllowAny]
+    queryset = InstallatonModels.objects.all()  # Base queryset required
+
+    def list(self, request, *args, **kwargs):
+        # Apply session-year filter using SessionYearMixin
+        installation_count = super().get_queryset().filter(~Q(OTR='')).count()
+        deactivation_count = DeactivationModels.objects.filter(
+            ~Q(OTR=''),
+            session_year__in=super().get_queryset().values_list("session_year", flat=True)
+        ).count()
+        reactivation_count = ReactivationModels.objects.filter(
+            ~Q(OTR=''),
+            session_year__in=super().get_queryset().values_list("session_year", flat=True)
+        ).count()
+
+        total_count = installation_count + deactivation_count + reactivation_count
+        return Response({'count': total_count}, status=status.HTTP_200_OK)
 
 
-  def get(self, request,*args,**kwargs):     
-    installation_count = InstallatonModels.objects.filter(~Q(OTR='')).count()
-    deactivation_count = DeactivationModels.objects.filter(~Q(OTR='')).count()
-
-    # Count non-empty OTR entries in ReactivationModels
-    reactivation_count = ReactivationModels.objects.filter(~Q(OTR='')).count()
-    # Sum up all counts
-    total_count = installation_count + deactivation_count + reactivation_count
-    return Response({'count':total_count},status=status.HTTP_200_OK)
-
-class NewOTRCountView(generics.ListAPIView):
+class NewOTRCountView(SessionYearMixin,generics.ListAPIView):
     permission_classes=[AllowAny]
-    def get(self, request, *args,**kwargs):
+    queryset = InstallatonModels.objects.all()  # Base queryset required
+    def list(self, request, *args,**kwargs):
         # Count Renewal entries with OTR in InstallationModels
-        installation_new_count = InstallatonModels.objects.filter(
+        installation_new_count = super().get_queryset().filter(
             Q(NewRenewal='New') & ~Q(OTR='')
         ).count()
 
         # Count Renewal entries with OTR in DeactivationModels
         deactivation_new_count = DeactivationModels.objects.filter(
-            Q(NewRenewal='New') & ~Q(OTR='')
+           ( Q(NewRenewal='New') & ~Q(OTR='')),
+            session_year__in=super().get_queryset().values_list("session_year", flat=True)
         ).count()
 
         # Count Renewal entries with OTR in ReactivationModels
         reactivation_new_count = ReactivationModels.objects.filter(
-            Q(NewRenewal='New') & ~Q(OTR='')
+            (Q(NewRenewal='New') & ~Q(OTR='')),
+            session_year__in=super().get_queryset().values_list("session_year", flat=True)
         ).count()
 
         # Total count from all models
@@ -59,22 +69,25 @@ class NewOTRCountView(generics.ListAPIView):
         return Response({'count':total_new_count},status=status.HTTP_200_OK)
 
 
-class RenewalOTRCountView(generics.ListAPIView):
+class RenewalOTRCountView(SessionYearMixin,generics.ListAPIView):
         permission_classes=[AllowAny]
-        def get(self, request, *args,**kwargs):
+        queryset = InstallatonModels.objects.all()  # Base queryset required
+        def list(self, request, *args,**kwargs):
             # Count Renewal entries with OTR in InstallationModels
-            installation_renewal_count = InstallatonModels.objects.filter(
+            installation_renewal_count = super().get_queryset().filter(
                 Q(NewRenewal='Renewal') & ~Q(OTR='')
             ).count()
 
             # Count Renewal entries with OTR in DeactivationModels
             deactivation_renewal_count = DeactivationModels.objects.filter(
-                Q(NewRenewal='Renewal') & ~Q(OTR='')
+                (Q(NewRenewal='Renewal') & ~Q(OTR='')),
+            session_year__in=super().get_queryset().values_list("session_year", flat=True)
             ).count()
 
             # Count Renewal entries with OTR in ReactivationModels
             reactivation_renewal_count = ReactivationModels.objects.filter(
-                Q(NewRenewal='Renewal') & ~Q(OTR='')
+                (Q(NewRenewal='Renewal') & ~Q(OTR='')),
+            session_year__in=super().get_queryset().values_list("session_year", flat=True)
             ).count()
 
             # Total count from all models
@@ -82,53 +95,65 @@ class RenewalOTRCountView(generics.ListAPIView):
             return Response({'count':total_renewal_count},status=status.HTTP_200_OK)
 
 
-class TodayOTRCountView(generics.ListAPIView):
+class TodayOTRCountView(SessionYearMixin,generics.ListAPIView):
    permission_classes = [AllowAny]
+   queryset = InstallatonModels.objects.all()  # Base queryset required
 
-   def get(self, request, *args, **kwargs):
+   def list(self, request, *args, **kwargs):
         today = timezone.now().date()
 
-        installation_otr_count = InstallatonModels.objects.filter(Q(InstallationDate=today)  & ~Q(OTR='')).count()
-        deactivation_otr_count = DeactivationModels.objects.filter(Q(DeactivationDate=today) &  ~Q(OTR='')).count()
-        reactivation_otr_count = ReactivationModels.objects.filter(Q(ReactivationDate=today) &  ~Q(OTR='')).count()
+        installation_otr_count = super().get_queryset().filter(Q(InstallationDate=today)  & ~Q(OTR='')).count()
+        deactivation_otr_count = DeactivationModels.objects.filter((Q(DeactivationDate=today) &  ~Q(OTR='')),
+            session_year__in=super().get_queryset().values_list("session_year", flat=True)).count()
+        reactivation_otr_count = ReactivationModels.objects.filter((Q(ReactivationDate=today) &  ~Q(OTR='')),
+            session_year__in=super().get_queryset().values_list("session_year", flat=True)).count()
 
         today_otr_count = installation_otr_count + deactivation_otr_count + reactivation_otr_count
         return Response({'count':today_otr_count},status=status.HTTP_200_OK)
 
-class TodayNewOTRCountView(generics.ListAPIView):
+class TodayNewOTRCountView(SessionYearMixin,generics.ListAPIView):
    permission_classes = [AllowAny]
+   queryset = InstallatonModels.objects.all()  # Base queryset required
 
-   def get(self, request, *args, **kwargs):
+   def list(self, request, *args, **kwargs):
         today = timezone.now().date()
 
-        installation_otr_count = InstallatonModels.objects.filter(Q(InstallationDate=today) & Q(NewRenewal='New') & ~Q(OTR='')).count()
-        deactivation_otr_count = DeactivationModels.objects.filter(Q(DeactivationDate=today) & Q(NewRenewal='New') & ~Q(OTR='')).count()
-        reactivation_otr_count = ReactivationModels.objects.filter(Q(ReactivationDate=today) & Q(NewRenewal='New') & ~Q(OTR='')).count()
+        installation_otr_count = super().get_queryset().filter(Q(InstallationDate=today) & Q(NewRenewal='New') & ~Q(OTR='')).count()
+        deactivation_otr_count = DeactivationModels.objects.filter((Q(DeactivationDate=today) & Q(NewRenewal='New') & ~Q(OTR='')),
+            session_year__in=super().get_queryset().values_list("session_year", flat=True)).count()
+        reactivation_otr_count = ReactivationModels.objects.filter((Q(ReactivationDate=today) & Q(NewRenewal='New') & ~Q(OTR='')),
+            session_year__in=super().get_queryset().values_list("session_year", flat=True)).count()
 
         today_otr_count = installation_otr_count + deactivation_otr_count + reactivation_otr_count
         return Response({'count':today_otr_count},status=status.HTTP_200_OK)
-class TodayRenewalOTRCountView(generics.ListAPIView):
+class TodayRenewalOTRCountView(SessionYearMixin,generics.ListAPIView):
     permission_classes=[AllowAny]
-    def get(self,request, *args, **kwargs):
+    queryset = InstallatonModels.objects.all()  # Base queryset required
+    def list(self,request, *args, **kwargs):
         today = timezone.now().date()
 
-        installation_otr_count = InstallatonModels.objects.filter(Q(InstallationDate=today) & Q(NewRenewal='Renewal') & ~Q(OTR='')).count()
-        deactivation_otr_count = DeactivationModels.objects.filter(Q(DeactivationDate=today) & Q(NewRenewal='Renewal') & ~Q(OTR='')).count()
-        reactivation_otr_count = ReactivationModels.objects.filter(Q(ReactivationDate=today) & Q(NewRenewal='Renewal') & ~Q(OTR='')).count()
+        installation_otr_count = super().get_queryset().filter(Q(InstallationDate=today) & Q(NewRenewal='Renewal') & ~Q(OTR='')).count()
+        deactivation_otr_count = DeactivationModels.objects.filter((Q(DeactivationDate=today) & Q(NewRenewal='Renewal') & ~Q(OTR='')),
+            session_year__in=super().get_queryset().values_list("session_year", flat=True)).count()
+        reactivation_otr_count = ReactivationModels.objects.filter((Q(ReactivationDate=today) & Q(NewRenewal='Renewal') & ~Q(OTR='')),
+            session_year__in=super().get_queryset().values_list("session_year", flat=True)).count()
 
         today_otr_count = installation_otr_count + deactivation_otr_count + reactivation_otr_count
         return Response({'count':today_otr_count},status=status.HTTP_200_OK)
     
 
-class YesterdayOTRCountView(generics.ListAPIView):
+class YesterdayOTRCountView(SessionYearMixin,generics.ListAPIView):
     permission_classes=[AllowAny]
-    def get(self,request, *args, **kwargs):
+    queryset = InstallatonModels.objects.all()  # Base queryset required
+    def list(self,request, *args, **kwargs):
         current_date = date.today()
         yesterday= current_date - timedelta(days=1)
 
-        installation_otr_count = InstallatonModels.objects.filter(Q(InstallationDate=yesterday) &  ~Q(OTR='')).count()
-        deactivation_otr_count = DeactivationModels.objects.filter(Q(DeactivationDate=yesterday) & ~Q(OTR='')).count()
-        reactivation_otr_count = ReactivationModels.objects.filter(Q(ReactivationDate=yesterday) & ~Q(OTR='')).count()
+        installation_otr_count = super().get_queryset().filter(Q(InstallationDate=yesterday) &  ~Q(OTR='')).count()
+        deactivation_otr_count = DeactivationModels.objects.filter((Q(DeactivationDate=yesterday) & ~Q(OTR='')),
+            session_year__in=super().get_queryset().values_list("session_year", flat=True)).count()
+        reactivation_otr_count = ReactivationModels.objects.filter((Q(ReactivationDate=yesterday) & ~Q(OTR='')),
+            session_year__in=super().get_queryset().values_list("session_year", flat=True)).count()
 
         today_otr_count = installation_otr_count + deactivation_otr_count + reactivation_otr_count
         return Response({'count':today_otr_count},status=status.HTTP_200_OK)
@@ -137,29 +162,35 @@ class YesterdayOTRCountView(generics.ListAPIView):
 
 
 
-class YesterdayNewOTRCountView(generics.ListAPIView):
+class YesterdayNewOTRCountView(SessionYearMixin,generics.ListAPIView):
    permission_classes = [AllowAny]
+   queryset = InstallatonModels.objects.all()  # Base queryset required
 
-   def get(self, request, *args, **kwargs):
+   def list(self, request, *args, **kwargs):
         today = timezone.now().date()
         yesterday= today - timedelta(days=1)
-        installation_otr_count = InstallatonModels.objects.filter(Q(InstallationDate=yesterday) & Q(NewRenewal='New') & ~Q(OTR='')).count()
-        deactivation_otr_count = DeactivationModels.objects.filter(Q(DeactivationDate=yesterday) & Q(NewRenewal='New') & ~Q(OTR='')).count()
-        reactivation_otr_count = ReactivationModels.objects.filter(Q(ReactivationDate=yesterday) & Q(NewRenewal='New') & ~Q(OTR='')).count()
+        installation_otr_count = super().get_queryset().filter(Q(InstallationDate=yesterday) & Q(NewRenewal='New') & ~Q(OTR='')).count()
+        deactivation_otr_count = DeactivationModels.objects.filter((Q(DeactivationDate=yesterday) & Q(NewRenewal='New') & ~Q(OTR='')),
+            session_year__in=super().get_queryset().values_list("session_year", flat=True)).count()
+        reactivation_otr_count = ReactivationModels.objects.filter((Q(ReactivationDate=yesterday) & Q(NewRenewal='New') & ~Q(OTR='')),
+            session_year__in=super().get_queryset().values_list("session_year", flat=True)).count()
 
         today_otr_count = installation_otr_count + deactivation_otr_count + reactivation_otr_count
         return Response({'count':today_otr_count},status=status.HTTP_200_OK)
 
 
 
-class YesterdayRenewalOTRCountView(generics.ListAPIView):
+class YesterdayRenewalOTRCountView(SessionYearMixin,generics.ListAPIView):
     permission_classes=[AllowAny]
-    def get(self,request, *args, **kwargs):
+    queryset = InstallatonModels.objects.all()  # Base queryset required
+    def list(self,request, *args, **kwargs):
         today = timezone.now().date()
         yesterday= today - timedelta(days=1)
-        installation_otr_count = InstallatonModels.objects.filter(Q(InstallationDate=yesterday) & Q(NewRenewal='Renewal') & ~Q(OTR='')).count()
-        deactivation_otr_count = DeactivationModels.objects.filter(Q(DeactivationDate=yesterday) & Q(NewRenewal='Renewal') & ~Q(OTR='')).count()
-        reactivation_otr_count = ReactivationModels.objects.filter(Q(ReactivationDate=yesterday) & Q(NewRenewal='Renewal') & ~Q(OTR='')).count()
+        installation_otr_count = super().get_queryset().filter(Q(InstallationDate=yesterday) & Q(NewRenewal='Renewal') & ~Q(OTR='')).count()
+        deactivation_otr_count = DeactivationModels.objects.filter((Q(DeactivationDate=yesterday) & Q(NewRenewal='Renewal') & ~Q(OTR='')),
+            session_year__in=super().get_queryset().values_list("session_year", flat=True)).count()
+        reactivation_otr_count = ReactivationModels.objects.filter((Q(ReactivationDate=yesterday) & Q(NewRenewal='Renewal') & ~Q(OTR='')),
+            session_year__in=super().get_queryset().values_list("session_year", flat=True)).count()
 
         today_otr_count = installation_otr_count + deactivation_otr_count + reactivation_otr_count
         return Response({'count':today_otr_count},status=status.HTTP_200_OK)

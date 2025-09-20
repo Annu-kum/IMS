@@ -4,6 +4,8 @@ from rest_framework import request
 from rest_framework import serializers
 from .models import OTRData
 from datetime import datetime
+from account.serializers import SessionYearSerializer
+
 
 class OtrgetSerializers(serializers.ModelSerializer):
     ExpiryDate = serializers.DateField(format='%d-%m-%Y', input_formats=['%d-%m-%Y'], required=False, allow_null=True)
@@ -54,7 +56,7 @@ class OtrgetSerializers(serializers.ModelSerializer):
 
     
 
-class otrdataserializes(serializers.ModelSerializer):
+class otrdataserializes(SessionYearSerializer,serializers.ModelSerializer):
    
     
     class Meta:

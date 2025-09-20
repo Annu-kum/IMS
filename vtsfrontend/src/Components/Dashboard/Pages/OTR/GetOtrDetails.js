@@ -158,8 +158,8 @@ const deletePopup = item =>{
           start_date: formattedStartDate,
           end_date: formattedEndDate,
         },
-      
-      });
+      headers:headers
+      },);
   
       setRows(response.data);
     

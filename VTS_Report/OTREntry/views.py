@@ -21,6 +21,8 @@ from .models import OTRData
 from .serializers import otrdataserializes,OtrgetSerializers
 from datetime import timedelta,datetime
 import logging
+from account.utility import SessionYearMixin
+from account.utility import get_user_session_year
 
 logger = logging.getLogger(__name__)
 class Paginations(PageNumberPagination):
@@ -32,10 +34,10 @@ class Paginations(PageNumberPagination):
         
 
 
-class GetOtrviewset(generics.ListAPIView):
+class GetOtrviewset(SessionYearMixin,generics.ListAPIView):
     queryset = OTRData.objects.all().order_by('MILLER_NAME')
     serializer_class =  OtrgetSerializers
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
     filter_backends = [filters.SearchFilter]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
     search_fields = ['MILLER_TRANSPORTER_ID']
@@ -45,7 +47,7 @@ class GetOtrviewset(generics.ListAPIView):
         return {'request': self.request}
 
     def get_queryset(self):
-        queryset = OTRData.objects.all().order_by('-id')
+        queryset = super().get_queryset().order_by('-id')
         start_date = self.request.query_params.get('start_date', None)
         end_date = self.request.query_params.get('end_date', None)
         
@@ -63,12 +65,11 @@ class GetOtrviewset(generics.ListAPIView):
     def get(self, request, *args, **kwargs):
         GPS_IMEI_NO = kwargs.get('GPS_IMEI_NO', None)
         if GPS_IMEI_NO:
-            try:
-                GPS_IMEI_NO = OTRData.objects.get(GPS_IMEI_NO=GPS_IMEI_NO)
-                serializer = self.get_serializer(GPS_IMEI_NO)
+            instance = self.get_queryset().filter(GPS_IMEI_NO=GPS_IMEI_NO).first()
+            if instance:
+                serializer = self.get_serializer(instance)
                 return Response(serializer.data, status=status.HTTP_200_OK)
-            except OTRData.DoesNotExist:
-                return Response({'error': 'Miller not found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'Miller not found'}, status=status.HTTP_404_NOT_FOUND)
 
         queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True)
@@ -101,10 +102,10 @@ class GetOTRGPSIMEINOviewset(generics.ListAPIView):
 class postOtrviewset(generics.CreateAPIView):
     queryset = OTRData.objects.all()
     serializer_class = otrdataserializes
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
     
     def post(self, request, *args, **kwargs):
-        serializer = otrdataserializes(data=request.data)
+        serializer = otrdataserializes(data=request.data,context={'request': request})
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -185,13 +186,16 @@ class GetGPSIMEINOviewset(generics.ListAPIView):
         serializer = InstallSerializers(queryset, many=True)
         return Response(serializer.data, status=200)
 
-class getOTRdata(generics.ListAPIView):
-    permission_classes = [AllowAny]
+class getOTRdata(SessionYearMixin, generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    queryset = InstallatonModels.objects.all()  # ✅ Base queryset for SessionYearMixin
 
-    def get(self, request, *args, **kwargs):
-        queryset = InstallatonModels.objects.all().order_by('-id')
-        start_date = request.query_params.get('start_date', None)
-        end_date = request.query_params.get('end_date', None)
+    def get_queryset(self):
+        # Start with session-year filtered queryset
+        queryset = super().get_queryset().order_by('-id')
+
+        start_date = self.request.query_params.get('start_date', None)
+        end_date = self.request.query_params.get('end_date', None)
 
         if start_date and end_date:
             try:
@@ -201,16 +205,16 @@ class getOTRdata(generics.ListAPIView):
             except ValueError as e:
                 logger.error(f"Date parsing error: {e}")
 
-        # Filter for non-empty OTR and format InstallationDate
-        otr_data = queryset.filter(~Q(OTR='')).values()
+        return queryset.filter(~Q(OTR=''))  # ✅ Only non-empty OTR
+
+    def get(self, request, *args, **kwargs):
+        queryset = self.get_queryset().values()
 
         # Format InstallationDate to dd-mm-yyyy
         formatted_data = []
-        for item in otr_data:
+        for item in queryset:
             if item.get('InstallationDate'):
                 item['InstallationDate'] = item['InstallationDate'].strftime('%d-%m-%Y')
             formatted_data.append(item)
 
-        return Response(formatted_data, status=200)    
-
-
+        return Response(formatted_data, status=200)
