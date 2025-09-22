@@ -91,5 +91,18 @@ class InstallatonModels(SessionYearBase):
             }
         )
 
+class InstallationExtraLetterHead(models.Model):
+    installation = models.ForeignKey(
+        "InstallatonModels",
+        on_delete=models.CASCADE,
+        related_name="extra_letterheads"
+    )
+    file = models.FileField(upload_to="installation/extra_letterheads/")
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.installation.MILLER_NAME} - {self.file.name}"
+
+
 
 # https://github.com/MoTechStore/Django-4-and-React-JS-18-File-Upload-and-Download/blob/main/reactjs_django/src/components/UploadFile.js

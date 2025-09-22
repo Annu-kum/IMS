@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import InstallatonModels
+from .models import InstallatonModels, InstallationExtraLetterHead
 from rest_framework import request
 from rest_framework import serializers
 from .models import InstallatonModels
@@ -69,18 +69,27 @@ class InstallSerializers(serializers.ModelSerializer):
     Installation_letterHead = serializers.SerializerMethodField()
     Dealer_Name = serializers.SlugRelatedField(slug_field='Dealer_Name', queryset=Dealersmodel.objects.all())
     InstallationDate = serializers.SerializerMethodField()
+    extra_letterheads = serializers.SerializerMethodField()
     class Meta:
         model = InstallatonModels
         fields = ['id','MILLER_TRANSPORTER_ID','MILLER_NAME','Device_Name','district','MillerContactNo','Dealer_Name','Entity_id','GPS_IMEI_NO',
                   'SIM_NO','NewRenewal','OTR','vehicle1','vehicle2','vehicle3',
                 'InstallationDate','Employee_Name',
-                  'Device_Fault','Fault_Reason','Replace_DeviceIMEI_NO','Remark1','Remark2','Remark3','Installation_letterHead']
+                  'Device_Fault','Fault_Reason','Replace_DeviceIMEI_NO','Remark1','Remark2','Remark3','Installation_letterHead','extra_letterheads']
+
 
     def get_Installation_letterHead(self, obj):
         request = self.context.get('request')
         if obj.Installation_letterHead and hasattr(obj.Installation_letterHead, 'url'):
             return request.build_absolute_uri(obj.Installation_letterHead.url)
         return None
+    
+    def get_extra_letterheads(self, obj):
+        request = self.context.get("request")
+        return [
+            request.build_absolute_uri(extra.file.url)
+            for extra in obj.extra_letterheads.all()
+        ]
 
     def validate_Installation_letterHead(self, value):
         if value and not value.name.endswith(('.jpg', '.jpeg', '.png', '.pdf')):
@@ -124,14 +133,42 @@ class InstallpostSerializers(SessionYearSerializer):
     InstallationDate = serializers.DateField(required=False, allow_null=True)
     Installation_letterHead = serializers.FileField(write_only=True)
     # Installation_letterHead_url = serializers.SerializerMethodField()
+     # multiple files accept karne ke liye
+    Installation_letterHead = serializers.ListField(
+        child=serializers.FileField(),
+        write_only=True,
+        required=False
+    )
+    # extra files ka list read-only
+    extra_letterheads = serializers.SerializerMethodField()
     
     class Meta:
         model = InstallatonModels
         fields = ['id','MILLER_TRANSPORTER_ID','MILLER_NAME','Device_Name','district','MillerContactNo','Dealer_Name','Entity_id','GPS_IMEI_NO',
                   'SIM_NO','NewRenewal','OTR','vehicle1','vehicle2','vehicle3',
                   'InstallationDate','Employee_Name',
-                  'Device_Fault','Fault_Reason','Replace_DeviceIMEI_NO','Remark1','Remark2','Remark3','Installation_letterHead']
+                  'Device_Fault','Fault_Reason','Replace_DeviceIMEI_NO','Remark1','Remark2','Remark3','Installation_letterHead','extra_letterheads']
+    def create(self, validated_data):
+        files = validated_data.pop("Installation_letterHead", [])
+        installation = super().create(validated_data)
 
+        if files:
+            # pehla file main model me
+            installation.Installation_letterHead = files[0]
+            installation.save()
+
+            # baaki files extra model me
+            for f in files[1:]:
+                InstallationExtraLetterHead.objects.create(installation=installation, file=f)
+
+        return installation
+
+    def get_extra_letterheads(self, obj):
+        request = self.context.get("request")
+        return [
+            request.build_absolute_uri(extra.file.url)
+            for extra in obj.extra_letterheads.all()
+        ]    
 
 
     def get_Installation_letterHead(self, obj):
@@ -152,8 +189,9 @@ class InstallpostSerializers(SessionYearSerializer):
         return None
 
     def validate_Installation_letterHead(self, value):
-        if value and not value.name.endswith(('.jpg', '.jpeg', '.png', '.pdf')):
-            raise serializers.ValidationError("Only .jpg, .jpeg, .png, .pdf files are allowed.")
+        for f in value:
+            if not f.name.endswith(('.jpg', '.jpeg', '.png', '.pdf')):
+                raise serializers.ValidationError("Only .jpg, .jpeg, .png, .pdf files are allowed.")
         return value
          
     def to_internal_value(self, data):
@@ -168,7 +206,13 @@ class InstallpostSerializers(SessionYearSerializer):
         representation = super().to_representation(instance)
         if instance.InstallationDate:
             representation['InstallationDate'] = instance.InstallationDate.strftime('%d-%m-%Y')
-        representation['Installation_letterHead'] = self.get_Installation_letterHead(instance)
+        # main file url
+        if instance.Installation_letterHead and hasattr(instance.Installation_letterHead, 'url'):
+            request = self.context.get('request')
+            representation['Installation_letterHead'] = request.build_absolute_uri(instance.Installation_letterHead.url)
+        else:
+            representation['Installation_letterHead'] = None    
+        # representation['Installation_letterHead'] = self.get_Installation_letterHead(instance)
         return representation
 
 
