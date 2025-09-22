@@ -158,7 +158,10 @@ const initialRow = {
   const[remark2,setremark2]=useState('')
   const[remark3,setremark3]=useState('')
   const[installedletter,setinstalledletter]=useState('')
-  const [file, setFile] = useState(null)
+  const [file, setFile] = useState([])
+  // replace single file with multiple files
+ const [extraFiles, setextraFiles] = useState([]);
+
   const token = localStorage.getItem('Token');
  const headers = {
    'content-type': 'application/json',
@@ -237,16 +240,47 @@ const handleInputChange = (id, field, value) => {
 
 
 const handleSave = () => {
-  rows.forEach((row) => {
+  // rows.forEach((row) => {
+  //   const formData = new FormData();
+  //   // Object.keys(row).forEach((key) => {formData.append(key, row[key])});
+  //   // append all row fields
+  //   Object.keys(row).forEach((key) => {
+  //     if (key !== 'Installation_letterHead') {
+  //       formData.append(key, row[key]);
+  //     }
+  //   });
+    rows.forEach((row) => {
     const formData = new FormData();
-    Object.keys(row).forEach(key => formData.append(key, row[key]));
+
+    // normal fields
+    Object.keys(row).forEach((key) => {
+      if (key !== "Installation_letterHead") {
+        formData.append(key, row[key]);
+      }
+    });
+
+    // add main file (required)
+    if (file.length > 0) {
+      formData.append("Installation_letterHead", file[0]);
+    }
+
+    // add extra files (optional)
+    extraFiles.forEach((f) => {
+      formData.append("Installation_letterHead", f);
+    });
+
      
       formData.append('MILLER_TRANSPORTER_ID', mlID);
       formData.append('MILLER_NAME', millername);
       formData.append('district', districts);
       formData.append('MillerContactNo', MAcontactno);
       formData.append('Dealer_Name', dealerName);
-      formData.append('Installation_letterHead', file);
+      // formData.append('Installation_letterHead', file);
+      // Append multiple files
+      //  append multiple files
+    // file.forEach((f) => {
+    //   formData.append('Installation_letterHead', f);
+    // });
     axios.post(`${baseUrl}/installation/postinstaller/`,formData,{
     headers: {
       'Content-Type': 'multipart/form-data',
@@ -260,7 +294,7 @@ const handleSave = () => {
      }
   ).catch((err) =>{toast.error("something went wrong, please check dealerName, Date or upload letterhead",{theme:"light",position:"top-center"}
    )
-  //  console.log(err) 
+   console.log(err) 
 },
     
 );
@@ -731,88 +765,103 @@ return (
           borderRadius={'1%'}
           boxShadow={'12'}
         >
-          <Typography  sx={{fontFamily:'inherit',fontWeight:'bold',color:'black',fontSize:'15px' }}>Upload LetterHead  <IconButton component="div" style={{color:'red' }} >*</IconButton>  </Typography>
-          
-          <Box
-              
-              gap="20px"
-              gridTemplateColumns="repeat(4, minmax(0, 1fr))"
-              sx={{
-                "& > div": { gridColumn: isNonMobile ? undefined : "span 4" },
-                padding:'1.0rem'
-              }}
-            >
-                {/* <TextField
-                fullWidth
-                variant="filled"
-                type="file"
-                onChange={(e)=>{
-                  const file=e.target.files[0]
-                  setFile(file)
-                  handleInputChange(rows.id,'Installation_letterHead',file)}}
-                InputProps={{sx:{height:'39px'}}}
-                sx={{ gridColumn: "span 2" }}
-              />  */}
-               <input
-                            type="file"
-                           
-                            accept=".pdf,.doc,.docx,.png"
-                            onChange={(e)=>{
-                              const inputs=e.target.files[0]
-                              setFile(inputs)
-                              handleInputChange(rows[0].id,'Installation_letterHead',inputs)}}
-                          
-                          />
-                      
-              <Button
-                size='medium'
-                 height='7vh'
-                 width='40px'
-                sx={{
-                 
-                  background:`linear-gradient(${'#233044'},${'#82A0D8'})`,
-                  '&:hover':{
-                    backgroundColor:'#FF8A08',
-                    color:'#fff',
-                    fontSize: "14px",
-                  fontWeight: "bold",
-                  
-                  },
-                  color:'#fff' ,
-                  fontSize: "14px",
-                  fontWeight: "bold",
-                  gridColumn:'span 1',
-                   margin:'7px 7px 0px 0px'
-                 }}
-                 onClick={handleSave}
-                 
-              >Submit
-              </Button>
-              <Button
-              size='medium'
-              height='7vh'
-              width='40px'
-                sx={{
-                  
-                  background:`linear-gradient(${'#FF8E8F'},${'#D04848'})`,
-                  '&:hover':{
-                    backgroundColor:'#FF8A08',
-                    color:'#fff',
-                    fontSize: "14px",
-                  fontWeight: "bold",
-                 
-                  
-                  },
-                  color:'#fff' ,
-                  fontSize: "14px",
-                  fontWeight: "bold",
-                  gridColumn:'span 1',
-                   margin:'7px 7px 0px 0px'
-                 }}
-                 
-              >Cancel
-              </Button>
-              </Box>
+ <Typography
+  sx={{
+    fontFamily: "inherit",
+    fontWeight: "bold",
+    color: "black",
+    fontSize: "15px",
+    mb: 1,
+  }}
+>
+  Upload LetterHead <IconButton component="div" style={{ color: "red" }}>*</IconButton>
+</Typography>
+
+<Box
+  sx={{
+    display: "flex",
+    alignItems: "center",
+    gap: 3, // spacing between items
+    flexWrap: "wrap", // responsive wrap on smaller screens
+    p: "1rem",
+    backgroundColor: "#F9FAFB",
+    borderRadius: "8px",
+  }}
+>
+  {/* Main LetterHead */}
+  <Box>
+    <Typography sx={{ fontWeight: "bold", mb: 1, fontSize: "14px" }}>
+      Main LetterHead <span style={{ color: "red" }}>*</span>
+    </Typography>
+    <input
+      type="file"
+      accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+      onChange={(e) => {
+        const mainFile = e.target.files[0];
+        if (mainFile) {
+          setFile([mainFile]); // always keep main file at index 0
+          handleInputChange(rows[0].id, "Installation_letterHead", [mainFile]);
+        }
+      }}
+    />
+  </Box>
+
+  {/* Extra LetterHeads */}
+  <Box>
+    <Typography sx={{ fontWeight: "bold", mb: 1, fontSize: "14px" }}>
+      Extra LetterHeads (Optional)
+    </Typography>
+    <input
+      type="file"
+      multiple
+      accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+      onChange={(e) => {
+        const extras = Array.from(e.target.files);
+        setextraFiles(extras);
+      }}
+    />
+  </Box>
+
+  {/* Submit Button */}
+  <Button
+    size="medium"
+    sx={{
+      height: "40px",
+      background: `linear-gradient(#233044,#82A0D8)`,
+      "&:hover": {
+        backgroundColor: "#FF8A08",
+        color: "#fff",
+        fontSize: "14px",
+      },
+      color: "#fff",
+      fontSize: "14px",
+      fontWeight: "bold",
+    }}
+    onClick={handleSave}
+  >
+    Submit
+  </Button>
+
+  {/* Cancel Button */}
+  <Button
+    size="medium"
+    sx={{
+      height: "40px",
+      background: `linear-gradient(#FF8E8F,#D04848)`,
+      "&:hover": {
+        backgroundColor: "#FF8A08",
+        color: "#fff",
+        fontSize: "14px",
+      },
+      color: "#fff",
+      fontSize: "14px",
+      fontWeight: "bold",
+    }}
+  >
+    Cancel
+  </Button>
+</Box>
+
               </Box>
           </Box>
     </Paper>
