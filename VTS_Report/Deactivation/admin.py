@@ -8,7 +8,7 @@ class DeactivationAdmin(admin.ModelAdmin):
     list_display=('id','MILLER_TRANSPORTER_ID','MILLER_NAME','Device_Name','district','MillerContactNo','Dealer_Name','Entity_id','GPS_IMEI_NO',
                   'SIM_NO','NewRenewal','OTR','vehicle1','vehicle2','vehicle3',
                   'DeactivationDate','Employee_Name',
-                  'Device_Fault','Fault_Reason','Replace_DeviceIMEI_NO','Remark1','Remark2','Remark3','Deactivation_letterHead_link')
+                  'Device_Fault','Fault_Reason','Replace_DeviceIMEI_NO','Remark1','Remark2','Remark3','Deactivation_letterHead_link','session_year')
     list_per_page= 100
     list_max_show_all = 200
 

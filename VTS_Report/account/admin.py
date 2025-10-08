@@ -46,3 +46,7 @@ class SessionYearListAdmin(admin.ModelAdmin):
     ordering = ['-year']
     list_per_page = 20
     list_max_show_all =50
+
+
+
+
