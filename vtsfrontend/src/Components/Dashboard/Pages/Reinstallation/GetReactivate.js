@@ -154,6 +154,9 @@ const initialRow = {
   const[remark3,setremark3]=useState('')
   const[reactivateletter,setreactivationletter]=useState('')
   const [file, setFile] = useState(null)
+  // replace single file with multiple files
+  const [extraFiles, setextraFiles] = useState([]);
+  
   const token = localStorage.getItem('Token');
  const headers = {
    'content-type': 'application/json',

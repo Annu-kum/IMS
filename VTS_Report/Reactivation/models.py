@@ -83,5 +83,18 @@ class ReactivationModels(SessionYearBase):
                 'Reactivation_letterHead':self.Reactivation_letterHead.url if self.Reactivation_letterHead else None,  
             }
         )
+#New Update 081025
+class ReactivationExtraLetterHead(models.Model):
+    reactivation = models.ForeignKey(
+        "ReactivationModels",
+        on_delete=models.CASCADE,
+        related_name="extra_letterheads"
+    )
+    file = models.FileField(upload_to="reactivation/extra_letterheads/")
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.reactivation.MILLER_NAME} - {self.file.name}"
+
 
 # https://github.com/MoTechStore/Django-4-and-React-JS-18-File-Upload-and-Download/blob/main/reactjs_django/src/components/UploadFile.js

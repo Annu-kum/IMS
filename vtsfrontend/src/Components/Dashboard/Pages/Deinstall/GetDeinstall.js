@@ -39,7 +39,7 @@ const columns = [
   {id: 'OTR',label: 'OTR',minWidth: 80,align: 'right', format: (value) => value.toFixed(2),},
   { id: 'vehicle2', label: 'Vehicle No 2', minWidth: 120, align: 'right', format: (value) => value.toFixed(2),},
   {id: 'vehicle3', label: 'Vehicle No 3', minWidth: 120, align: 'right', format: (value) => value.toFixed(2),},
-  {id: 'DeactivationDate',label: 'Deactivation Date',minWidth: 150,align: 'right',format: (value) => value.toFixed(2),},
+  // {id: 'DeactivationDate',label: 'Deactivation Date',minWidth: 150,align: 'right',format: (value) => value.toFixed(2),},
     
       {
         id: 'Employee_Name',
@@ -111,6 +111,8 @@ const InputTable = () => {
   };
   const isNonMobile = useMediaQuery("(min-width:600px)");
   const[loadDealers,setLoadealers]=useState([])
+  const [deactivationDate, setDeactivationDate] = useState(""); // new date field
+  const [extraFiles, setextraFiles] = useState([]); // <-- add this line
 
   const fetchInstallations = async () => {
     setData([]);
@@ -204,6 +206,9 @@ useEffect(() => {
     setFile(e.target.files[0]);
   };
 
+
+
+
   const handleRowSelect = (id) => {
     setSelectedRows((prevSelectedRows) =>
       prevSelectedRows.includes(id)
@@ -229,29 +234,60 @@ useEffect(() => {
         ...item,
         ...data[item.id],
         MILLER_TRANSPORTER_ID:millerId,
-        Deactivation_letterHead:file, // Add the deactivation letterhead to each selected row
+        Deactivation_letterHead:file,
+        DeactivationDate:deactivationDate // Add the deactivation letterhead to each selected row
       }));
 
    
-        selectedData.forEach((row) => {
-          const formData = new FormData();
-          Object.keys(row).forEach(key => formData.append(key, row[key]));
-           
-            formData.append('MILLER_TRANSPORTER_ID', millerId);
-            formData.append('Deactivation_letterHead', file);
-          axios.post(`http://127.0.0.1:8000/deactivation/postdeactivate/`,formData,{
-          headers: {
-            'Content-Type': 'multipart/form-data',
-            'Authorization': `Token ${token}`
-          },}
-          ).then((res) => 
-            toast.success("Data submitted successfully ",{
-              theme:"light",
-              position:"top-center"
-            })).catch((err) => 
-            alert("check date or letterhead field")      
+        // Existing loop part inside onSubmit
+selectedData.forEach((row) => {
+  const formData = new FormData();
+  Object.keys(row).forEach((key) => {
+    if (key !== "Deactivation_letterHead") {
+      formData.append(key, row[key]);
+    }
+  });
+
+    if (row.DeactivationDate) {
+    const formattedDate = new Date(row.DeactivationDate).toISOString().split("T")[0];
+    formData.append("DeactivationDate", formattedDate);
+  }
+
+  // Add main file (required)
+  if (file && file.length > 0) {
+    formData.append("Deactivation_letterHead", file[0]);
+  }
+
+  // Add extra files (optional)
+  if (extraFiles && extraFiles.length > 0) {
+    extraFiles.forEach((f) => {
+      formData.append("Deactivation_letterHead", f);
+    });
+  }
+
+  formData.append("MILLER_TRANSPORTER_ID", millerId);
+
+  axios
+    .post(`http://127.0.0.1:8000/deactivation/postdeactivate/`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+        Authorization: `Token ${token}`,
+      },
+    })
+    .then(() =>
+      toast.success("Data submitted successfully", {
+        theme: "light",
+        position: "top-center",
+      })
+    )
+    .catch((err) =>     
+      // toast.error("Check date or letterhead field", {
+      //   theme: "light",
+      //   position: "top-center",
+      // })
+      console.log(err),
     );
-        });
+});
           };
 
   return (
@@ -333,16 +369,61 @@ useEffect(() => {
                  </Button>
                  </Box>  
                 
-                 <Box sx={{ fontWeight: 'bold' }}>
-                 <Typography  sx={{fontFamily:'inherit',fontWeight:'bold',color:'black',fontSize:'15px' }}>Upload LetterHead <IconButton sx={{color:'red'}}>*</IconButton></Typography>
-                 <input
-                             type="file"
-                             accept=".pdf,.doc,.docx,.png"
-                             onChange={handleFileChange}
-                             
-                             required
-                          />
-                          </Box>
+               {/* Main LetterHead */}
+<Box sx={{ fontWeight: "bold" }}>
+  <Typography
+    sx={{
+      fontFamily: "inherit",
+      fontWeight: "bold",
+      color: "black",
+      fontSize: "15px",
+    }}
+  >
+    Upload Main LetterHead <IconButton sx={{ color: "red" }}>*</IconButton>
+  </Typography>
+  <input
+    type="file"
+    accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+    onChange={(e) => {
+      const mainFile = e.target.files[0];
+      if (mainFile) {
+        setFile([mainFile]); // main file array (for consistency)
+      }
+    }}
+  />
+</Box>
+
+{/* Extra LetterHeads */}
+<Box>
+  <Typography
+    sx={{ fontWeight: "bold", mb: 1, fontSize: "14px" }}
+  >
+    Extra LetterHeads (Optional)
+  </Typography>
+  <input
+    type="file"
+    multiple
+    accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+    onChange={(e) => {
+      const extras = Array.from(e.target.files);
+      setextraFiles(extras);
+    }}
+  />
+</Box>
+
+{/* Deactivation Date Picker */}
+<Box>
+  <Typography sx={{ fontWeight: "bold", mb: 1, fontSize: "14px" }}>
+    Deactivation Date
+  </Typography>
+  <TextField
+    type="date"
+    size="small"
+    value={deactivationDate}
+    onChange={(e) => setDeactivationDate(e.target.value)}
+    sx={{ width: "180px", backgroundColor: "white" }}
+  />
+</Box>
                  </Box>
                  </Box>  
            {/* Row 2 */}
@@ -521,14 +602,14 @@ useEffect(() => {
                       render={({ field }) => <TextField {...field} variant="outlined" size="small"  />}
                     />
                   </TableCell>
-                  <TableCell>
+                  {/* <TableCell>
                     <Controller
                       name={`${datalists.id}.DeactivationDate`}
                       control={control}
                       defaultValue={datalists.DeactivationDate}
                       render={({ field }) => <TextField {...field} variant="outlined" size="small" type="date" />}
                     />
-                  </TableCell>
+                  </TableCell> */}
                   <TableCell>
                     <Controller
                       name={`${datalists.id}.Employee_Name`}

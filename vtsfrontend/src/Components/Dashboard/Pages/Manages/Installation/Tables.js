@@ -294,7 +294,7 @@ const handleSave = () => {
      }
   ).catch((err) =>{toast.error("something went wrong, please check dealerName, Date or upload letterhead",{theme:"light",position:"top-center"}
    )
-   console.log(err) 
+   
 },
     
 );

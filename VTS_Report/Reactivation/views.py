@@ -336,8 +336,8 @@ class YesterdayRenewalReactivationCountView(BaseCountView):
 
 class BulkImportView(generics.ListCreateAPIView):
     parser_classes = [MultiPartParser, FormParser]
-    permission_classes = [AllowAny]
-
+    permission_classes = [IsAuthenticated] #New Update 111025
+     
     def post(self, request, *args, **kwargs):
         excel_file = request.FILES.get("file")
         letterhead_file = request.FILES.get("letterhead")
