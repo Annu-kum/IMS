@@ -10,6 +10,7 @@ from account.serializers import SessionYearSerializer
 class OtrgetSerializers(serializers.ModelSerializer):
     ExpiryDate = serializers.DateField(format='%d-%m-%Y', input_formats=['%d-%m-%Y'], required=False, allow_null=True)
     nextExpirydate = serializers.DateField(format='%d-%m-%Y', input_formats=['%d-%m-%Y'], required=False, allow_null=True)
+    extendedDate=serializers.DateField(format='%d-%m-%Y', input_formats=['%d-%m-%Y'], required=False, allow_null=True)
     InstallationDate= serializers.DateField(format='%d-%m-%Y', input_formats=['%d-%m-%Y'], required=False, allow_null=True)
     InstallationDate = serializers.SerializerMethodField()
     class Meta:
@@ -18,7 +19,7 @@ class OtrgetSerializers(serializers.ModelSerializer):
             'id', 'MILLER_TRANSPORTER_ID', 'MILLER_NAME', 'district', 'MillerContactNo', 'Dealer_Name',
             'Entity_id', 'GPS_IMEI_NO', 'SIM_NO', 'Device_Name', 'NewRenewal', 'OTR', 'vehicle1', 'vehicle2',
             'vehicle3', 'InstallationDate', 'Employee_Name', 'Device_Fault', 'Fault_Reason',
-            'Replace_DeviceIMEI_NO', 'ExpiryDate', 'extendedMonth', 'nextExpirydate'
+            'Replace_DeviceIMEI_NO', 'ExpiryDate', 'extendedMonth','extendedDate', 'nextExpirydate'
         ]
     
     def get_InstallationDate(self, obj):
@@ -35,6 +36,11 @@ class OtrgetSerializers(serializers.ModelSerializer):
         if obj.ExpiryDate:
             return obj.ExpiryDate.strftime('%d-%m-%Y')
         return None
+    
+    def get_extendedDate(self, obj):
+        if obj.extendedDate:
+            return obj.extendedDate.strftime('%d-%m-%Y')
+        return None
 
     def to_internal_value(self, data):
         if 'nextExpirydate' in data and isinstance(data['nextExpirydate'], str):
@@ -46,6 +52,8 @@ class OtrgetSerializers(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
+        if instance.extendedDate:
+            representation['extendedDate'] = instance.extendedDate.strftime('%d-%m-%Y')        
         if instance.nextExpirydate:
             representation['nextExpirydate'] = instance.nextExpirydate.strftime('%d-%m-%Y')
         if instance.ExpiryDate:
@@ -56,9 +64,7 @@ class OtrgetSerializers(serializers.ModelSerializer):
 
     
 
-class otrdataserializes(SessionYearSerializer,serializers.ModelSerializer):
-   
-    
+class otrdataserializes(SessionYearSerializer,serializers.ModelSerializer):    
     class Meta:
         model = OTRData
         fields = ['id','MILLER_TRANSPORTER_ID',
@@ -82,6 +88,7 @@ class otrdataserializes(SessionYearSerializer,serializers.ModelSerializer):
         'Replace_DeviceIMEI_NO',
         'ExpiryDate',
         'extendedMonth',
+        'extendedDate',
         'nextExpirydate']
 
    

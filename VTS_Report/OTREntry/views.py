@@ -40,7 +40,10 @@ class GetOtrviewset(SessionYearMixin,generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     filter_backends = [filters.SearchFilter]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
-    search_fields = ['MILLER_TRANSPORTER_ID']
+    search_fields = ['MILLER_TRANSPORTER_ID', 'MILLER_NAME', 'district', 'MillerContactNo', 'Dealer_Name',
+            'Entity_id', 'GPS_IMEI_NO', 'SIM_NO', 'Device_Name', 'NewRenewal', 'OTR', 'vehicle1', 'vehicle2',
+            'vehicle3', 'Employee_Name', 'Device_Fault', 'Fault_Reason',
+            'Replace_DeviceIMEI_NO',]
     lookup_field = 'id'
     pagination_class=Paginations
     def get_serializer_context(self):
@@ -188,7 +191,7 @@ class GetGPSIMEINOviewset(generics.ListAPIView):
 
 class getOTRdata(SessionYearMixin, generics.ListAPIView):
     permission_classes = [IsAuthenticated]
-    queryset = InstallatonModels.objects.all()  # ✅ Base queryset for SessionYearMixin
+    queryset = InstallatonModels.objects.all()  #  Base queryset for SessionYearMixin
 
     def get_queryset(self):
         # Start with session-year filtered queryset
@@ -205,7 +208,7 @@ class getOTRdata(SessionYearMixin, generics.ListAPIView):
             except ValueError as e:
                 logger.error(f"Date parsing error: {e}")
 
-        return queryset.filter(~Q(OTR=''))  # ✅ Only non-empty OTR
+        return queryset.filter(~Q(OTR=''))  #  Only non-empty OTR
 
     def get(self, request, *args, **kwargs):
         queryset = self.get_queryset().values()

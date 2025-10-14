@@ -61,6 +61,7 @@ const columns = [
 {id:'Fault_Reason',label:'Fault Reason',minWidth:100,align:'right',},
 {id:'Replace_DeviceIMEI_NO',label:'Replace DeviceIMEI NO',minWidth:170,align:'right',},
 {id:'ExpiryDate',label:'Expiry Date',minWidth:100,align:'right',},
+{id:'extendedDate',label:'Extended Date',minWidth:120,align:'right',},
 {id:'extendedMonth',label:'Extended Month',minWidth:120,align:'right',},
 {id:'nextExpirydate',label:'Next Expiry date',minWidth:120,align:'right',},
 

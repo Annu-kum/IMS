@@ -38,8 +38,9 @@ class GetInstallviewset(SessionYearMixin,generics.ListAPIView):
     filter_backends = [filters.SearchFilter]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
     search_fields = [
-        'MILLER_TRANSPORTER_ID','MILLER_NAME','Device_Name','GPS_IMEI_NO',
-        'SIM_NO','NewRenewal','OTR','vehicle1','Employee_Name',
+        'MILLER_TRANSPORTER_ID','MILLER_NAME','Device_Name','GPS_IMEI_NO','Entity_id',
+        'SIM_NO','NewRenewal','OTR','vehicle1','vehicle2','vehicle3','Employee_Name','Device_Fault',
+        'Fault_Reason','Replace_DeviceIMEI_NO','Remark1','Remark2','Remark3'
     ]
     lookup_field = 'MILLER_TRANSPORTER_ID'
     pagination_class = Paginations
@@ -48,7 +49,7 @@ class GetInstallviewset(SessionYearMixin,generics.ListAPIView):
         return {'request': self.request}
 
     def get_queryset(self):
-        queryset = super().get_queryset().order_by('-id')  # 👈 SessionYearMixin applied
+        queryset = super().get_queryset().order_by('-id')  #  SessionYearMixin applied
         start_date = self.request.query_params.get('start_date', None)
         end_date = self.request.query_params.get('end_date', None)
         
@@ -69,7 +70,7 @@ class GetInstallviewset(SessionYearMixin,generics.ListAPIView):
         MILLER_TRANSPORTER_ID = kwargs.get('MILLER_TRANSPORTER_ID', None)
 
         if MILLER_TRANSPORTER_ID:
-            # 👇 session_year applied here also
+            #  session_year applied here also
             miller_instances = super().get_queryset().filter(MILLER_TRANSPORTER_ID=MILLER_TRANSPORTER_ID)
             if miller_instances.exists():
                 serializer = self.get_serializer(miller_instances, many=True)
@@ -259,7 +260,7 @@ class InstallCountView(SessionYearMixin, generics.ListAPIView):
     queryset = InstallatonModels.objects.all()
 
     def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset()   # ✅ SessionYearMixin filter apply karega
+        queryset = self.get_queryset()   #  SessionYearMixin filter apply karega
         count = queryset.count()
         return Response({'count': count}, status=status.HTTP_200_OK)
 

@@ -33,7 +33,9 @@ class GetReactivateviewset(SessionYearMixin,generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     filter_backends = [filters.SearchFilter]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
-    search_fields = ['MILLER_TRANSPORTER_ID','MILLER_NAME','Device_Name','GPS_IMEI_NO','SIM_NO','NewRenewal','OTR','vehicle1','Employee_Name',]
+    search_fields = ['MILLER_TRANSPORTER_ID','MILLER_NAME','Device_Name','GPS_IMEI_NO','Entity_id',
+        'SIM_NO','NewRenewal','OTR','vehicle1','vehicle2','vehicle3','Employee_Name','Device_Fault',
+        'Fault_Reason','Replace_DeviceIMEI_NO','Remark1','Remark2','Remark3']
     pagination_class = Paginations
     lookup_field = 'MILLER_TRANSPORTER_ID'
 

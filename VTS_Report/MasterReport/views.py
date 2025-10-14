@@ -38,26 +38,26 @@ class MasterReport(generics.ListCreateAPIView):
         return date_obj.strftime('%d-%m-%Y') if date_obj else None
 
     def get_queryset(self):
-        # 🔹 Step 1: Get session year for logged-in user
+        #  Step 1: Get session year for logged-in user
         session_year = get_user_session_year(self.request.user)
         if not session_year:
             return InstallatonModels.objects.none()
 
-        # 🔹 Step 2: Apply session year filter to all models
+        #  Step 2: Apply session year filter to all models
         installations = InstallatonModels.objects.filter(session_year=session_year)
         deactivations = DeactivationModels.objects.filter(session_year=session_year).values_list('GPS_IMEI_NO', flat=True)
         reactivations = ReactivationModels.objects.filter(session_year=session_year).values_list('GPS_IMEI_NO', flat=True)
 
-        # 🔹 Step 3: Exclude deactivations & include reactivations
+        #  Step 3: Exclude deactivations & include reactivations
         installations = installations.exclude(GPS_IMEI_NO__in=deactivations)
         reactivated_installations = InstallatonModels.objects.filter(
             GPS_IMEI_NO__in=reactivations, session_year=session_year
         )
 
-        # 🔹 Step 4: Combine both
+        #  Step 4: Combine both
         final_queryset = installations | reactivated_installations
 
-        # 🔹 Step 5: Apply date filter if present
+        #  Step 5: Apply date filter if present
         start_date_str = self.request.query_params.get('start_date')
         end_date_str = self.request.query_params.get('end_date')
 
@@ -69,7 +69,7 @@ class MasterReport(generics.ListCreateAPIView):
             except ValueError:
                 raise ValueError('Invalid date format. Use DD-MM-YYYY.')
 
-        # 🔹 Step 6: Apply search filters
+        #  Step 6: Apply search filters
         for backend in list(self.filter_backends):
             final_queryset = backend().filter_queryset(self.request, final_queryset, self)
 

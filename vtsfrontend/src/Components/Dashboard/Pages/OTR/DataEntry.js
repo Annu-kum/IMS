@@ -44,6 +44,7 @@ export default function DataEntry() {
         ExpiryDate:'',
         extendedMonth:'',
         nextExpirydate:'',
+        extendedDate:''
   });
   const[values,setValues]=useState('')
   const [newRow, setNewRow] = useState([]);
@@ -72,6 +73,7 @@ export default function DataEntry() {
   const[ExpiryDate,setExpirydate]=useState('')
   const[extendedMonth,setExtendedmonth]=useState('')
   const[nextExpirydate,setNextexpirydate]=useState('')
+  const[extendedDate,setExtendedDate]=useState('')
   const token = localStorage.getItem('Token');
   const headers = {
     'content-type': 'application/json',
@@ -127,19 +129,18 @@ export default function DataEntry() {
     return () => clearInterval(interval);
   }, [installdate]); 
 
-//convert the string to integer...
-const num = parseInt(extendedMonth,10)
+
 
   const nextexdate=() => {
     // Set up interval to update expiry date 
-      if (!ExpiryDate || !extendedMonth) return;
+      if (!extendedDate || !extendedMonth) return;
 
       const num = parseInt(extendedMonth, 10);
-      const givenDate = parse(ExpiryDate, 'dd-MM-yyyy', new Date()); 
+      const givenDate = parse(extendedDate, 'dd-MM-yyyy', new Date()); 
       const newDate = addMonths(givenDate,num);
       const dateformate = format(newDate,'dd-MM-yyyy');
         setNextexpirydate(dateformate);
-      
+                    
     // Cleanup function to clear the interval
    
     };
@@ -169,11 +170,10 @@ const num = parseInt(extendedMonth,10)
       Replace_DeviceIMEI_NO:deviceimeino,
       ExpiryDate:ExpiryDate,
       extendedMonth:extendedMonth,
+      extendedDate:extendedDate,
       nextExpirydate:nextExpirydate,
      },{headers:headers}).then((res)=>{
-       toast.success("Data saved",{theme:"light",position:"top-center"})
-      
-       
+       toast.success("Data saved",{theme:"light",position:"top-center"})      
      }).catch((error)=> toast.error("nextExpirydate not be blank",{theme:"light",position:"top-center"}))
      
     }
@@ -526,8 +526,7 @@ const ITEM_HEIGHT = 48;
               </TextField>
               </Box>
               <Box sx={{ fontWeight: 'bold' }}>
-                <label>Expiry Date</label>
-                
+                <label>Expiry Date</label>                
                 <TextField
                 fullWidth
                 variant="filled"
@@ -541,6 +540,19 @@ const ITEM_HEIGHT = 48;
               >
               </TextField>
               </Box>
+            <Box sx={{ fontWeight: 'bold' }}>
+                <label>Extended Date</label>
+                <TextField
+                fullWidth
+                variant="filled"
+                type="date"
+                value={extendedDate} 
+                onChange={(e)=>setExtendedDate(e.target.value)}  
+                sx={{ gridColumn: "span 4" }}
+                SelectProps={{ native: true }}
+                InputProps={{sx:{height:'40px'}}}
+              /> 
+              </Box>
               <Box sx={{ fontWeight: 'bold' }}>
                 <label>Extended Month</label>
                 <TextField
@@ -552,8 +564,7 @@ const ITEM_HEIGHT = 48;
                 sx={{ gridColumn: "span 4" }}
                 SelectProps={{ native: true }}
                 InputProps={{sx:{height:'40px'}}}
-              />
-               
+              />        
               </Box>
               <Box sx={{ fontWeight: 'bold' }}>
                 <label>Next Expiry Date</label>
