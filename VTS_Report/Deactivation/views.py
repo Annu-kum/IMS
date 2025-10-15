@@ -32,7 +32,9 @@ class GetDeactiveviewset(SessionYearMixin,generics.ListAPIView):
     permission_classes = [AllowAny]
     filter_backends = [filters.SearchFilter]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
-    search_fields = ['MILLER_TRANSPORTER_ID','MILLER_NAME','Device_Name','GPS_IMEI_NO','SIM_NO','NewRenewal','OTR','vehicle1','Employee_Name',]
+    search_fields = ['MILLER_TRANSPORTER_ID','MILLER_NAME','Device_Name','GPS_IMEI_NO','Entity_id',
+        'SIM_NO','NewRenewal','OTR','vehicle1','vehicle2','vehicle3','Employee_Name','Device_Fault',
+        'Fault_Reason','Replace_DeviceIMEI_NO','Remark1','Remark2','Remark3']
     lookup_field = 'MILLER_TRANSPORTER_ID'
     pagination_class = Paginations
 
@@ -332,9 +334,9 @@ class YesterdayRenewalDeactivationCountViews(BaseCountView):
                 NewRenewal__iexact='Renewal').count()
             return Response({'count':renewal_count},status=status.HTTP_200_OK)
 
-class BulkImportView(generics.ListCreateAPIView):
+class BulkImportView(generics.CreateAPIView):
     parser_classes = [MultiPartParser, FormParser]
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request):
         excel_file = request.FILES.get("file")
@@ -343,11 +345,9 @@ class BulkImportView(generics.ListCreateAPIView):
         if not excel_file or not letterhead_file:
             return Response({"error": "Excel file and letterhead are required."}, status=400)
 
-        # Validate file type
         if not excel_file.name.endswith(('.xlsx', '.xls', '.csv')):
             return Response({"error": "Invalid file type. Upload an Excel or CSV file."}, status=400)
 
-        # Read the Excel or CSV
         try:
             if excel_file.name.endswith(".csv"):
                 df = pd.read_csv(excel_file)
@@ -356,7 +356,6 @@ class BulkImportView(generics.ListCreateAPIView):
         except Exception as e:
             return Response({"error": f"Error reading file: {str(e)}"}, status=400)
 
-        # Required columns
         required_columns = [
             'MILLER_TRANSPORTER_ID', 'MILLER_NAME', 'district', 'MillerContactNo',
             'Dealer_Name', 'Entity_id', 'GPS_IMEI_NO', 'SIM_NO', 'Device_Name',
@@ -366,64 +365,65 @@ class BulkImportView(generics.ListCreateAPIView):
         ]
 
         if not all(col in df.columns for col in required_columns):
-            missing_cols = list(set(required_columns) - set(df.columns))
-            return Response({"error": f"Missing columns: {missing_cols}"}, status=400)
+            missing = list(set(required_columns) - set(df.columns))
+            return Response({"error": f"Missing columns: {missing}"}, status=400)
 
         df = df.fillna("")
         session_year = get_user_session_year(request.user)
         if not session_year:
             return Response({"error": "Session year not found for this user."}, status=400)
-        # Process each row
-        entries=[]
+
+        #  Loop save each record (atomic per-row)
         for _, row in df.iterrows():
             try:
-                deactivation_date_str = str(row["DeactivationDate"]).strip().replace("“", "").replace("”", "")
-                try:
-                    deactivation_date = datetime.strptime(deactivation_date_str, "%d-%m-%Y").date()
-                except ValueError:
-                    try:
-                        deactivation_date = datetime.strptime(deactivation_date_str, "%Y-%m-%d").date()
-                    except ValueError:
-                        return Response({"error": f"Error processing row: InstallationDate '{deactivation_date_str}' is not in a recognized format (expected DD-MM-YYYY or YYYY-MM-DD)."}, status=400)
+                raw_date = row["DeactivationDate"]
+                deactivation_date = None
 
-                # if not DeactivationModels.objects.filter(MILLER_TRANSPORTER_ID=row['MILLER_TRANSPORTER_ID']).exists():
-                    entry = DeactivationModels(
-                        MILLER_TRANSPORTER_ID=row['MILLER_TRANSPORTER_ID'],
-                        MILLER_NAME=row['MILLER_NAME'],
-                        district=row['district'],
-                        MillerContactNo=row['MillerContactNo'],
-                        Dealer_Name=row['Dealer_Name'],
-                        Entity_id=row['Entity_id'],
-                        GPS_IMEI_NO=row['GPS_IMEI_NO'],
-                        SIM_NO=row['SIM_NO'],                                      
-                        Device_Name=row['Device_Name'],
-                        NewRenewal=row['NewRenewal'],
-                        OTR=row['OTR'],
-                        vehicle1=row['vehicle1'],
-                        vehicle2=row['vehicle2'],
-                        vehicle3=row['vehicle3'],
-                        DeactivationDate=deactivation_date,
-                        Employee_Name=row['Employee_Name'],
-                        Device_Fault=row['Device_Fault'],
-                        Fault_Reason=row['Fault_Reason'],
-                        Replace_DeviceIMEI_NO=row['Replace_DeviceIMEI_NO'],
-                        Remark1=row['Remark1'],
-                        Remark2=row['Remark2'],
-                        Remark3=row['Remark3'],
-                        session_year=session_year  # Set session_year if needed
-                    )
-                    entry.save()
+                # Handle timestamp or string date
+                if isinstance(raw_date, (datetime, pd.Timestamp)):
+                    deactivation_date = raw_date.date()
+                elif isinstance(raw_date, str) and raw_date.strip():
+                    for fmt in ("%d-%m-%Y", "%Y-%m-%d", "%Y-%m-%d %H:%M:%S"):
+                        try:
+                            deactivation_date = datetime.strptime(raw_date.strip(), fmt).date()
+                            break
+                        except ValueError:
+                            continue
 
-                    # Reset letterhead pointer and save the file to entry
-                    letterhead_file.open()
-                    entry.Deactivation_letterHead.save(letterhead_file.name, ContentFile(letterhead_file.read()))
-                   
-            
+                # Create record
+                entry = DeactivationModels.objects.create(
+                    MILLER_TRANSPORTER_ID=row['MILLER_TRANSPORTER_ID'],
+                    MILLER_NAME=row['MILLER_NAME'],
+                    district=row['district'],
+                    MillerContactNo=row['MillerContactNo'],
+                    Dealer_Name=row['Dealer_Name'],
+                    Entity_id=row['Entity_id'],
+                    GPS_IMEI_NO=row['GPS_IMEI_NO'],
+                    SIM_NO=row['SIM_NO'],
+                    Device_Name=row['Device_Name'],
+                    NewRenewal=row['NewRenewal'],
+                    OTR=row['OTR'],
+                    vehicle1=row['vehicle1'],
+                    vehicle2=row['vehicle2'],
+                    vehicle3=row['vehicle3'],
+                    DeactivationDate=deactivation_date,
+                    Employee_Name=row['Employee_Name'],
+                    Device_Fault=row['Device_Fault'],
+                    Fault_Reason=row['Fault_Reason'],
+                    Replace_DeviceIMEI_NO=row['Replace_DeviceIMEI_NO'],
+                    Remark1=row['Remark1'],
+                    Remark2=row['Remark2'],
+                    Remark3=row['Remark3'],
+                    session_year=session_year
+                )
+                
+                letterhead_file.seek(0)
+                entry.Deactivation_letterHead.save(letterhead_file.name, ContentFile(letterhead_file.read()))
+
             except Exception as e:
-                return Response({"error": f"Error processing row with ID {row.get('MILLER_TRANSPORTER_ID', '')}: {str(e)}"}, status=400)
-        # Bulk create all entries
-        DeactivationModels.objects.bulk_create(entries)
-        return Response({"message": "Bulk upload successful."}, status=201)
+                print(f" Error processing row {row.get('MILLER_TRANSPORTER_ID', '')}: {e}")
+                continue  # skip bad rows but continue others
 
-
+        return Response({"message": "Bulk upload successful!"}, status=201)
+        
 

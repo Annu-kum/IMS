@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import DeactivationModels
+from .models import DeactivationModels,DeactivationExtraLetterHead
 from datetime import datetime
 from Dealer.models import Dealersmodel
 from account.serializers import SessionYearSerializer
@@ -10,12 +10,13 @@ class DeactivateSerializers(serializers.ModelSerializer):
     DeactivationDate = serializers.DateField(format='%Y-%m-%d',input_formats=['%d-%m-%Y'], required=False, allow_null=True)
     Deactivation_letterHead = serializers.SerializerMethodField()
     DeactivationDate = serializers.SerializerMethodField()
+    extra_letterheads = serializers.SerializerMethodField()
     class Meta:
         model = DeactivationModels
         fields = ['id','MILLER_TRANSPORTER_ID','MILLER_NAME','Device_Name','district','MillerContactNo','Dealer_Name','Entity_id','GPS_IMEI_NO',
                   'SIM_NO','NewRenewal','OTR','vehicle1','vehicle2','vehicle3',
                 'DeactivationDate','Employee_Name',
-                  'Device_Fault','Fault_Reason','Replace_DeviceIMEI_NO','Remark1','Remark2','Remark3','Deactivation_letterHead']
+                  'Device_Fault','Fault_Reason','Replace_DeviceIMEI_NO','Remark1','Remark2','Remark3','Deactivation_letterHead','extra_letterheads'] #New Update 111025
 
     def get_Deactivation_letterHead(self, obj):
         request = self.context.get('request')
@@ -23,6 +24,13 @@ class DeactivateSerializers(serializers.ModelSerializer):
             return request.build_absolute_uri(obj.Deactivation_letterHead.url)
         return None
 
+    def get_extra_letterheads(self, obj):
+        request = self.context.get("request")
+        return [
+            request.build_absolute_uri(extra.file.url)
+            for extra in obj.extra_letterheads.all()
+        ]
+    
     def validate_Deactivation_letterHead(self, value):
         if value and not value.name.endswith(('.jpg', '.jpeg', '.png', '.pdf')):
             raise serializers.ValidationError("Only .jpg, .jpeg, .png, .pdf files are allowed.")
@@ -53,58 +61,158 @@ class DeactivateSerializers(serializers.ModelSerializer):
    
 
 
-class DeactivatepostSerializers(SessionYearSerializer,serializers.ModelSerializer):
-    DeactivationDate = serializers.DateField(required=False, allow_null=True)
-    Deactivation_letterHead = serializers.FileField(write_only=True)
-    # Installation_letterHead_url = serializers.SerializerMethodField()
-    
+# class DeactivatepostSerializers(SessionYearSerializer,serializers.ModelSerializer):
+#     DeactivationDate = serializers.DateField(required=False, allow_null=True)
+#     Deactivation_letterHead = serializers.FileField(write_only=True)
+#     # Installation_letterHead_url = serializers.SerializerMethodField()
+#     # accept multiple files 
+#     Deactivation_letterHead = serializers.ListField(
+#         child=serializers.FileField(),
+#         write_only=True,
+#         required=False
+#     )
+#     # extra files  list read-only
+#     extra_letterheads = serializers.SerializerMethodField()
+
+#     class Meta:
+#         model = DeactivationModels
+#         fields = ['id','MILLER_TRANSPORTER_ID','MILLER_NAME','Device_Name','district','MillerContactNo','Dealer_Name','Entity_id','GPS_IMEI_NO',
+#                   'SIM_NO','NewRenewal','OTR','vehicle1','vehicle2','vehicle3',
+#                   'DeactivationDate','Employee_Name',
+#                   'Device_Fault','Fault_Reason','Replace_DeviceIMEI_NO','Remark1','Remark2','Remark3','Deactivation_letterHead','extra_letterheads']  #New Update 111025
+#     def create(self, validated_data):
+#         files = validated_data.pop("Installation_letterHead", [])
+#         deactivation = super().create(validated_data)
+        
+#         if files:
+#             # first file as main file
+#             deactivation.Deactivation_letterHead = files[0]
+#             deactivation.save()
+
+#             # rest file in extra model
+#             for f in files[1:]:
+#                 DeactivationExtraLetterHead.objects.create(deactivation=deactivation, file=f)
+
+#         return deactivation
+
+#     def get_extra_letterheads(self, obj):
+#         request = self.context.get("request")
+#         return [
+#             request.build_absolute_uri(extra.file.url)
+#             for extra in obj.extra_letterheads.all()
+#         ] 
+
+#     def get_Deactivation_letterHead(self, obj):
+#         request = self.context.get('request')
+#         if obj.Deactivation_letterHead and hasattr(obj.Deactivation_letterHead, 'url'):
+#             return request.build_absolute_uri(obj.Deactivation_letterHead.url)
+#         return None
+
+#     def get_Deactivation_letterHead_url(self, obj):
+#         request = self.context.get('request')
+#         if obj.Deactivation_letterHead and hasattr(obj.Deactivation_letterHead, 'url'):
+#             return request.build_absolute_uri(obj.Deactivation_letterHead.url)
+#         return None
+#     def get_DeactivationDate(self, obj):
+#         request = self.context.get('request')
+#         if obj.DeactivationDate and hasattr(obj.DeactivationDate, 'url'):
+#             return request.build_absolute_uri(obj.DeactivationDate.url)
+#         return None
+# # New Update 111025
+#     def validate_Installation_letterHead(self, value):
+#         for f in value:
+#             if not f.name.endswith(('.jpg', '.jpeg', '.png', '.pdf')):
+#                 raise serializers.ValidationError("Only .jpg, .jpeg, .png, .pdf files are allowed.")
+#         return value
+         
+#     def to_internal_value(self, data):
+#         if 'DeactivationDate' in data and isinstance(data['DeactivationDate'], datetime):
+#             try:
+#                 data['DeactivationDate'] = datetime.strptime(data['DeactivationDate'], '%d-%m-%Y').date()
+#             except ValueError:
+#                 raise serializers.ValidationError({"DeactivationDate": "Date has wrong format. Use one of these formats instead: DD-MM-YYYY."})
+#         return super().to_internal_value(data)
+
+#     def to_representation(self, instance):
+#         representation = super().to_representation(instance)
+#         if instance.DeactivationDate:
+#             representation['DeactivationDate'] = instance.DeactivationDate.strftime('%d-%m-%Y')
+#         # main file url
+#         if instance.Deactivation_letterHead and hasattr(instance.Deactivation_letterHead, 'url'):
+#             request = self.context.get('request')
+#             representation['Deactivation_letterHead'] = request.build_absolute_uri(instance.Deactivation_letterHead.url)
+#         else:
+#             representation['Deactivation_letterHead'] = None    
+  
+#         # representation['Deactivation_letterHead'] = self.get_Deactivation_letterHead(instance)
+#         # representation['Deactivation_letterHead_url'] = self.get_Deactivation_letterHead_url(instance)
+#         return representation
+
+class DeactivatepostSerializers(SessionYearSerializer, serializers.ModelSerializer):
+    DeactivationDate = serializers.DateField(
+        required=False,
+        allow_null=True,
+        input_formats=['%d-%m-%Y', '%Y-%m-%d']  # ✅ Accept both formats
+    )
+
+    Deactivation_letterHead = serializers.ListField(
+        child=serializers.FileField(),
+        write_only=True,
+        required=False
+    )
+
+    extra_letterheads = serializers.SerializerMethodField()
+
     class Meta:
         model = DeactivationModels
-        fields = ['id','MILLER_TRANSPORTER_ID','MILLER_NAME','Device_Name','district','MillerContactNo','Dealer_Name','Entity_id','GPS_IMEI_NO',
-                  'SIM_NO','NewRenewal','OTR','vehicle1','vehicle2','vehicle3',
-                  'DeactivationDate','Employee_Name',
-                  'Device_Fault','Fault_Reason','Replace_DeviceIMEI_NO','Remark1','Remark2','Remark3','Deactivation_letterHead']
+        fields = [
+            'id', 'MILLER_TRANSPORTER_ID', 'MILLER_NAME', 'Device_Name', 'district',
+            'MillerContactNo', 'Dealer_Name', 'Entity_id', 'GPS_IMEI_NO', 'SIM_NO',
+            'NewRenewal', 'OTR', 'vehicle1', 'vehicle2', 'vehicle3',
+            'DeactivationDate', 'Employee_Name', 'Device_Fault', 'Fault_Reason',
+            'Replace_DeviceIMEI_NO', 'Remark1', 'Remark2', 'Remark3',
+            'Deactivation_letterHead', 'extra_letterheads'
+        ]
 
+    def create(self, validated_data):
+        # ✅ Correct key name
+        files = validated_data.pop("Deactivation_letterHead", [])
+        deactivation = super().create(validated_data)
 
-    def get_Deactivation_letterHead(self, obj):
-        request = self.context.get('request')
-        if obj.Deactivation_letterHead and hasattr(obj.Deactivation_letterHead, 'url'):
-            return request.build_absolute_uri(obj.Deactivation_letterHead.url)
-        return None
+        if files:
+            # ✅ Assign first file to main FileField
+            deactivation.Deactivation_letterHead = files[0]
+            deactivation.save()
 
-    def get_Deactivation_letterHead_url(self, obj):
-        request = self.context.get('request')
-        if obj.Deactivation_letterHead and hasattr(obj.Deactivation_letterHead, 'url'):
-            return request.build_absolute_uri(obj.Deactivation_letterHead.url)
-        return None
-    def get_DeactivationDate(self, obj):
-        request = self.context.get('request')
-        if obj.DeactivationDate and hasattr(obj.DeactivationDate, 'url'):
-            return request.build_absolute_uri(obj.DeactivationDate.url)
-        return None
+            # ✅ Save remaining files to related model
+            for f in files[1:]:
+                DeactivationExtraLetterHead.objects.create(deactivation=deactivation, file=f)
+
+        return deactivation
+
+    def get_extra_letterheads(self, obj):
+        request = self.context.get("request")
+        return [
+            request.build_absolute_uri(extra.file.url)
+            for extra in obj.extra_letterheads.all()
+        ]
 
     def validate_Deactivation_letterHead(self, value):
-        if value and not value.name.endswith(('.jpg', '.jpeg', '.png', '.pdf')):
-            raise serializers.ValidationError("Only .jpg, .jpeg, .png, .pdf files are allowed.")
+        for f in value:
+            if not f.name.endswith(('.jpg', '.jpeg', '.png', '.pdf')):
+                raise serializers.ValidationError("Only .jpg, .jpeg, .png, .pdf files are allowed.")
         return value
-         
-    def to_internal_value(self, data):
-        if 'DeactivationDate' in data and isinstance(data['DeactivationDate'], datetime):
-            try:
-                data['DeactivationDate'] = datetime.strptime(data['DeactivationDate'], '%d-%m-%Y').date()
-            except ValueError:
-                raise serializers.ValidationError({"DeactivationDate": "Date has wrong format. Use one of these formats instead: DD-MM-YYYY."})
-        return super().to_internal_value(data)
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         if instance.DeactivationDate:
             representation['DeactivationDate'] = instance.DeactivationDate.strftime('%d-%m-%Y')
-        representation['Deactivation_letterHead'] = self.get_Deactivation_letterHead(instance)
-        representation['Deactivation_letterHead_url'] = self.get_Deactivation_letterHead_url(instance)
+
+        # ✅ Add absolute URLs
+        request = self.context.get('request')
+        if instance.Deactivation_letterHead and hasattr(instance.Deactivation_letterHead, 'url'):
+            representation['Deactivation_letterHead'] = request.build_absolute_uri(instance.Deactivation_letterHead.url)
         return representation
-
-
 
 
 

@@ -29,6 +29,7 @@ class OTRData(SessionYearBase):
         ExpiryDate=models.DateField(null=True,blank=True)
         extendedMonth=models.CharField(max_length=10,blank=True)
         nextExpirydate=models.DateField(null=True,blank=True)
+        extendedDate=models.DateField(null=True,blank=True)
         
 
         def save(self, *args, **kwargs):

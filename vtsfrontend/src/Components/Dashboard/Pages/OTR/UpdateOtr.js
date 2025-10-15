@@ -41,6 +41,7 @@ export default function UpdateOtr(props) {
         Replace_DeviceIMEI_NO:'',
         ExpiryDate:'',
         extendedMonth:'',
+        extendedDate:'',
         nextExpirydate:'',  
   })
   
@@ -73,11 +74,11 @@ const nextexdate = () => {
   let givenDate;
 
   // Case 1: expiry date already ek Date object hai
-  if (values.ExpiryDate instanceof Date) {
-    givenDate = values.ExpiryDate;
+  if (values.extendedDate instanceof Date) {
+    givenDate = values.extendedDate;
   } else {
     // Case 2: expiry date ek string hai "dd-MM-yyyy" format me
-    givenDate = parse(values.ExpiryDate, 'dd-MM-yyyy', new Date());
+    givenDate = parse(values.extendedDate, 'dd-MM-yyyy', new Date());
   }
 
   const newDate = addMonths(givenDate, num);
@@ -459,6 +460,22 @@ const navigate= useNavigate()
                 SelectProps={{ native: true }}
                 disabled
                 InputProps={{sx:{height:'40px'}}}
+              >
+              </TextField>
+              </Box>
+              <Box sx={{ fontWeight: 'bold' }}>
+                <label>Extended Date</label>
+                <TextField
+                fullWidth
+                variant="filled"
+                type="text"
+                value={values.extendedDate} 
+                onChange={(e)=>setValues({...values,extendedDate:e.target.value})} 
+                sx={{ gridColumn: "span 2" }}
+                SelectProps={{ native: true }}
+                InputProps={{sx:{height:'40px'},
+                
+              }}
               >
               </TextField>
               </Box>

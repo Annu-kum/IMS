@@ -201,7 +201,7 @@ class YesterdayRenewalOTRCountView(SessionYearMixin,generics.ListAPIView):
 
 class DealerReport(SessionYearMixin, generics.ListAPIView):
     permission_classes = [IsAuthenticated]
-    queryset = InstallatonModels.objects.all()   # ✅ Base queryset needed for SessionYearMixin
+    queryset = InstallatonModels.objects.all()   # Base queryset needed for SessionYearMixin
 
     def get(self, request, *args, **kwargs):
         # Start with session-year filtered queryset

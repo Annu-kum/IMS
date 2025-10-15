@@ -330,6 +330,37 @@ const updateColumn = {
         </IconButton>
       ),
     },
+     {
+      field: 'extra_letterheads',
+      headerName: 'Extra LetterHeads',
+      align: 'center',
+      headerAlign: 'center',
+      width: 100,
+      headerClassName: 'head',
+      renderCell: (params) => {
+        const files = params.row.extra_letterheads || [];
+        if (files.length === 0) return <span>--</span>;
+    
+        return (
+          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+            {files.map((url, index) => (
+              <Box key={index} sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, mb: '4px' }}>
+    
+                <a
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ fontSize: '14px', color: 'blue', textDecoration: 'none' }}
+                >
+                  File {index + 1}
+                </a>
+              </Box>
+            ))}
+          </Box>
+        );
+      },
+    },
+      
     { field: 'Replace_DeviceIMEI_NO', headerAlign:'center',align:'center', headerName: 'Replace Device IMEI No', width: 120, editable: true,headerClassName:'head' },
     { field: 'Remark1', align:'center', headerAlign:'center',headerName: 'Remark 1', width: 100, editable: true ,headerClassName:'head'},
     { field: 'Remark2',align:'center', headerAlign:'center', headerName: 'Remark 2', width: 100, editable: true,headerClassName:'head' },
@@ -369,6 +400,37 @@ const adminMaincolumn=[
         </IconButton>
       ),
     },
+     {
+      field: 'extra_letterheads',
+      headerName: 'Extra LetterHeads',
+      align: 'center',
+      headerAlign: 'center',
+      width: 100,
+      headerClassName: 'head',
+      renderCell: (params) => {
+        const files = params.row.extra_letterheads || [];
+        if (files.length === 0) return <span>--</span>;
+    
+        return (
+          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+            {files.map((url, index) => (
+              <Box key={index} sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, mb: '4px' }}>
+    
+                <a
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ fontSize: '14px', color: 'blue', textDecoration: 'none' }}
+                >
+                  File {index + 1}
+                </a>
+              </Box>
+            ))}
+          </Box>
+        );
+      },
+    },
+      
   { field: 'Employee_Name', align: 'center', headerAlign: 'center', headerName: 'Employee Name', width: 130, editable: true, headerClassName: 'head' },
   { field: 'Device_Fault', align: 'center', headerAlign: 'center', headerName: 'Device Fault', width: 100, editable: true, headerClassName: 'head' },
   { field: 'Fault_Reason', align: 'center', headerAlign: 'center', headerName: 'Fault Reason', width: 100, editable: true, headerClassName: 'head' },
