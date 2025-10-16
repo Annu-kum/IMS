@@ -9,6 +9,7 @@ import Deactive_Report from './Deactive_Report';
 import PropTypes from 'prop-types';
 import InstallReport from './InstallReport';
 import ReactiveReport from './ReactiveReport';
+import OtrReactivation_Report from './OtrReactivation_Report';
 
 function CustomTabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -62,6 +63,8 @@ export default function ReportButton() {
          <Tab label="Installation" {...a11yProps(0)} className='tabs' sx={{color:'#1B1A55' , fontSize:'12px',fontWeight:'bolder',fontFamily:'initial'}}/>
          <Tab label="Deactivation" {...a11yProps(1)}  className='tabs' sx={{color:'#1B1A55' , fontSize:'12px',fontWeight:'bolder',fontFamily:'initial'}}/>
          <Tab label="Reactivation" {...a11yProps(2)} className='tabs' sx={{color:'#1B1A55' , fontSize:'12px',fontWeight:'bolder',fontFamily:'initial'}}/>
+         <Tab label="OTR Reactivation" {...a11yProps(3)} className='tabs' sx={{color:'#1B1A55' , fontSize:'12px',fontWeight:'bolder',fontFamily:'initial'}}/>
+
        </Tabs>
      </Box> 
        </Box>
@@ -73,6 +76,10 @@ export default function ReportButton() {
       </CustomTabPanel>
       <CustomTabPanel value={value} index={2}>
         <ReactiveReport/>
+      </CustomTabPanel>
+      {/* 151025 */}
+      <CustomTabPanel value={value} index={3}> 
+        <OtrReactivation_Report/>
       </CustomTabPanel>
       
      

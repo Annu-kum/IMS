@@ -37,6 +37,7 @@ const columns = [
   // Add more columns as needed
   {id: 'NewRenewal',label: 'New/Renewal',minWidth: 120,align: 'right',format: (value) => value.toFixed(2),},
   {id: 'OTR',label: 'OTR',minWidth: 80,align: 'right', format: (value) => value.toFixed(2),},
+  {id: 'otrMonth',label: 'OTR Month',minWidth: 170,align: 'right', format: (value) => value.toFixed(2),},
   { id: 'vehicle2', label: 'Vehicle No 2', minWidth: 120, align: 'right', format: (value) => value.toFixed(2),},
   {id: 'vehicle3', label: 'Vehicle No 3', minWidth: 120, align: 'right', format: (value) => value.toFixed(2),},
   // {id: 'DeactivationDate',label: 'Deactivation Date',minWidth: 150,align: 'right',format: (value) => value.toFixed(2),},
@@ -585,7 +586,14 @@ selectedData.forEach((row) => {
                       render={({ field }) => <TextField {...field} variant="outlined" size="small" />}
                     />
                   </TableCell>
-                 
+                 <TableCell>
+                    <Controller
+                      name={`${datalists.id}.otrMonth`}
+                      control={control}
+                      defaultValue={datalists.otrMonth}
+                      render={({ field }) => <TextField {...field} variant="outlined" size="small" />}
+                    />
+                  </TableCell>
                   <TableCell>
                     <Controller
                       name={`${datalists.id}.vehicle2`}

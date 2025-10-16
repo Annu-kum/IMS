@@ -49,7 +49,7 @@ class DeactivationModels(SessionYearBase):
     Remark2 = models.CharField(max_length=350,blank=True)
     Remark3 = models.CharField(max_length=350,blank=True)
     Deactivation_letterHead = models.FileField(upload_to='deactivation_letterheads/',validators=[validate_file_extension],null=True,blank=True,default='')
-    
+    otrMonth=models.CharField(max_length=15,blank=True, null=True)
     def get_absolute_url(self):
         if self.Deactivation_letterHead:
             return f"{settings.MEDIA_URL}{self.Deactivation_letterHead}"

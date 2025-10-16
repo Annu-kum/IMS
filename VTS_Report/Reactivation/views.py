@@ -15,6 +15,8 @@ import pandas as pd
 from rest_framework.exceptions import NotFound
 from account.utility import get_user_session_year,SessionYearMixin
 from django.core.files.base import ContentFile
+from django.db.models import Q
+from django.utils.dateparse import parse_date
 
 class Paginations(PageNumberPagination):
     page_size = 25
@@ -361,7 +363,7 @@ class BulkImportView(generics.ListCreateAPIView):
             return Response({"error": f"Error reading file: {str(e)}"}, status=400)
             # Filter only the relevant columns
         required_columns = ['MILLER_TRANSPORTER_ID','MILLER_NAME','district','MillerContactNo','Dealer_Name','Entity_id','GPS_IMEI_NO',
-                  'SIM_NO','Device_Name','NewRenewal','OTR','vehicle1','vehicle2','vehicle3',
+                  'SIM_NO','Device_Name','NewRenewal','OTR','otrMonth','vehicle1','vehicle2','vehicle3',
                 'ReactivationDate','Employee_Name',
                   'Device_Fault','Fault_Reason','Replace_DeviceIMEI_NO','Remark1','Remark2','Remark3']
 
@@ -402,6 +404,7 @@ class BulkImportView(generics.ListCreateAPIView):
                         Device_Name=row['Device_Name'],
                         NewRenewal=row['NewRenewal'],
                         OTR = row['OTR'],
+                        otrMonth=row['otrMonth'],
                         vehicle1=row['vehicle1'],
                         vehicle2=row['vehicle2'],
                         vehicle3=row['vehicle3'],
@@ -425,3 +428,82 @@ class BulkImportView(generics.ListCreateAPIView):
         ReactivationModels.objects.bulk_create(entries)
 
         return Response({'message': 'File processed successfully'}, status=status.HTTP_201_CREATED)
+
+#15102025
+
+class OTRReactivationReportView(SessionYearMixin, generics.ListAPIView):
+
+    queryset = ReactivationModels.objects.all().order_by('-id')
+    serializer_class = ReactivateSerializers
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+    filter_backends = [filters.SearchFilter]
+    pagination_class = Paginations
+
+    # Enable search on important fields
+    search_fields = [
+        'MILLER_TRANSPORTER_ID', 'MILLER_NAME', 'Device_Name',
+        'GPS_IMEI_NO', 'Entity_id', 'SIM_NO', 'NewRenewal',
+        'OTR', 'vehicle1', 'vehicle2', 'vehicle3',
+        'Employee_Name', 'Device_Fault', 'Fault_Reason',
+        'Replace_DeviceIMEI_NO', 'Remark1', 'Remark2', 'Remark3'
+    ]
+    lookup_field = 'MILLER_TRANSPORTER_ID'
+
+    def get_serializer_context(self):
+        return {'request': self.request}
+
+    def get_queryset(self):
+        queryset = super().get_queryset().order_by('-id')
+
+        # Show only OTR = 'YES' or 'Yes' records
+        queryset = queryset.filter(~Q(OTR=''))
+
+        #  Filter by date range
+        start_date = self.request.query_params.get('start_date')
+        end_date = self.request.query_params.get('end_date')
+
+        if start_date and end_date:
+            try:
+                start = datetime.strptime(start_date, '%d-%m-%Y').date()
+                end = datetime.strptime(end_date, '%d-%m-%Y').date()
+                queryset = queryset.filter(ReactivationDate__range=(start, end))
+            except ValueError as e:
+                logger.error(f"Date parsing error: {e}")
+                pass
+        elif start_date:
+            try:
+                start = datetime.strptime(start_date, '%d-%m-%Y').date()
+                queryset = queryset.filter(ReactivationDate__gte=start)
+            except ValueError:
+                pass
+        elif end_date:
+            try:
+                end = datetime.strptime(end_date, '%d-%m-%Y').date()
+                queryset = queryset.filter(ReactivationDate__lte=end)
+            except ValueError:
+                pass
+
+        # Apply search filter
+        for backend in list(self.filter_backends):
+            queryset = backend().filter_queryset(self.request, queryset, self)
+
+        return queryset
+
+    def get(self, request, *args, **kwargs):
+        export = request.query_params.get('export')
+        queryset = self.get_queryset()
+
+        #  Export mode (get all data without pagination)
+        if export == 'true':
+            serializer = self.get_serializer(queryset, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        # Paginated response (default)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)

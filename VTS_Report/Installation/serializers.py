@@ -18,7 +18,7 @@ class InstallSerializers(serializers.ModelSerializer):
     class Meta:
         model = InstallatonModels
         fields = ['id','MILLER_TRANSPORTER_ID','MILLER_NAME','Device_Name','district','MillerContactNo','Dealer_Name','Entity_id','GPS_IMEI_NO',
-                  'SIM_NO','NewRenewal','OTR','vehicle1','vehicle2','vehicle3',
+                  'SIM_NO','NewRenewal','OTR','otrMonth','vehicle1','vehicle2','vehicle3',
                 'InstallationDate','Employee_Name',
                   'Device_Fault','Fault_Reason','Replace_DeviceIMEI_NO','Remark1','Remark2','Remark3','Installation_letterHead','extra_letterheads']
 
@@ -90,7 +90,7 @@ class InstallpostSerializers(SessionYearSerializer):
     class Meta:
         model = InstallatonModels
         fields = ['id','MILLER_TRANSPORTER_ID','MILLER_NAME','Device_Name','district','MillerContactNo','Dealer_Name','Entity_id','GPS_IMEI_NO',
-                  'SIM_NO','NewRenewal','OTR','vehicle1','vehicle2','vehicle3',
+                  'SIM_NO','NewRenewal','OTR','otrMonth','vehicle1','vehicle2','vehicle3',
                   'InstallationDate','Employee_Name',
                   'Device_Fault','Fault_Reason','Replace_DeviceIMEI_NO','Remark1','Remark2','Remark3','Installation_letterHead','extra_letterheads']
     def create(self, validated_data):
@@ -170,7 +170,7 @@ class InstallupdatesSerializers(SessionYearSerializer):
     class Meta:
         model = InstallatonModels
         fields = ['id','MILLER_TRANSPORTER_ID','MILLER_NAME','Device_Name','district','MillerContactNo','Dealer_Name','Entity_id','GPS_IMEI_NO',
-                  'SIM_NO','NewRenewal','OTR','vehicle1','vehicle2','vehicle3',
+                  'SIM_NO','NewRenewal','OTR','otrMonth','vehicle1','vehicle2','vehicle3',
                   'InstallationDate','Employee_Name',
                   'Device_Fault','Fault_Reason','Replace_DeviceIMEI_NO','Remark1','Remark2','Remark3','Installation_letterHead']
 
