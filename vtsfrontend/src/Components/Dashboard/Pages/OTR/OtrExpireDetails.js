@@ -53,12 +53,15 @@ export default function OtrExpireDetails() {
       const imeiNo = item.GPS_IMEI_NO?.trim();
       let parsedInstallDate;
       let finalExpireDate;
-      let showInOTRTable = true;
+      let showInOTRTable = true;      
 
       if (item.InstallationDate && typeof item.InstallationDate === 'string') {
-        try {
+        try {                
+          // Parse number safely — fallback to 6 if blank, null, or invalid
+          const num = parseInt(item.otrMonth, 10);
+          const monthsToAdd = isNaN(num) || num <= 0 ? 6 : num;
           parsedInstallDate = parse(item.InstallationDate, 'dd-MM-yyyy', new Date());
-          finalExpireDate = addMonths(parsedInstallDate, 6);
+          finalExpireDate = addMonths(parsedInstallDate, monthsToAdd);
         } catch (err) {
           console.warn('Invalid InstallationDate:', item.InstallationDate);
           return null;

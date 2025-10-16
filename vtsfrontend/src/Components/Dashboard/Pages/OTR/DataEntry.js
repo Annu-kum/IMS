@@ -33,6 +33,7 @@ export default function DataEntry() {
         Device_Name:'',
         NewRenewal:'',
         OTR:'',
+        otrMonth:'',
         vehicle1:'',
         vehicle2:'',
         vehicle3:'',
@@ -62,6 +63,7 @@ export default function DataEntry() {
   const[devicename,setdevicename]=useState('')
   const[newrenewal,setnewrenewal]=useState('')
   const[otr,setotr]=useState('')
+  const[otrMonths,setotrMonths]=useState('')
   const[vehicle1,setvehicle1]=useState('')
   const[vehicle2,setVehicle2]=useState('')
   const[vehicle3,setVehicle3]=useState('')
@@ -87,7 +89,7 @@ export default function DataEntry() {
       axios.get(`${baseUrl}/otrentries/gpsno/${gpsimeino}`)
         .then((res) => {
           const data = res.data;
-         ;
+         
 
      setMlID(data.MILLER_TRANSPORTER_ID);
      setMillerName(data.MILLER_NAME);
@@ -99,6 +101,7 @@ export default function DataEntry() {
      setdevicename(data.Device_Name);
      setnewrenewal(data.NewRenewal);
      setotr(data.OTR);
+     setotrMonths(data.otrMonth)
      setvehicle1(data.vehicle1);
      setVehicle2(data.vehicle2);
      setVehicle3(data.vehicle3);
@@ -118,8 +121,10 @@ export default function DataEntry() {
     // Set up interval to update expiry date 
     const interval = setInterval(() => {
       if (installdate) {
-      const givenDate= parse(installdate,'dd-MM-yyyy',new Date());
-      const newDate = addMonths(givenDate,6);
+      const givenDate= parse(installdate,'dd-MM-yyyy',new Date()); 
+      let months=parseInt(otrMonths,10)
+      const monthsToAdd = isNaN(months) || months <= 0 ? 6 : months;
+      const newDate = addMonths(givenDate,months);
       const dateformate = format(newDate,'dd-MM-yyyy');
         setExpirydate(dateformate);
       }
@@ -134,7 +139,6 @@ export default function DataEntry() {
   const nextexdate=() => {
     // Set up interval to update expiry date 
       if (!extendedDate || !extendedMonth) return;
-
       const num = parseInt(extendedMonth, 10);
       const givenDate = parse(extendedDate, 'dd-MM-yyyy', new Date()); 
       const newDate = addMonths(givenDate,num);
