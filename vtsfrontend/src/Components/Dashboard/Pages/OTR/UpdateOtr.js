@@ -31,6 +31,7 @@ export default function UpdateOtr(props) {
         Device_Name:'',
         NewRenewal:'',
         OTR:'',
+        otrMonth:'',
         vehicle1:'',
         vehicle2:'',
         vehicle3:'',
@@ -72,7 +73,7 @@ const nextexdate = () => {
   const num = parseInt(values.extendedMonth, 10);
 
   let givenDate;
-
+  
   // Case 1: expiry date already ek Date object hai
   if (values.extendedDate instanceof Date) {
     givenDate = values.extendedDate;
@@ -312,6 +313,21 @@ const navigate= useNavigate()
                 type="text"
                 value={values.OTR} 
                 onChange={(e)=>setValues({...values,OTR:e.target.value})}
+                sx={{ gridColumn: "span 2" }}
+                SelectProps={{ native: true }}
+                disabled
+                InputProps={{sx:{height:'40px'}}}
+              >
+              </TextField>
+              </Box>
+              <Box sx={{ fontWeight: 'bold' }}>
+                <label>OTR Month</label>                
+                <TextField
+                fullWidth
+                variant="filled"
+                type="text"
+                value={values.otrMonth} 
+                onChange={(e)=>setValues({...values,otrMonth:e.target.value})}
                 sx={{ gridColumn: "span 2" }}
                 SelectProps={{ native: true }}
                 disabled
