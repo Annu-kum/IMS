@@ -24,7 +24,8 @@ urlpatterns = [
     path('yesterday-count/', views.YesterdayReactiveCountView.as_view(), name='Reactivation-yesterday-count'),
     path('yesterday-new-count/', views.YesterdayNewReactivateCountView.as_view(), name='Reactivation-yesterday-new-count'),
     path('yesterday-renewal-count/',views.YesterdayRenewalReactivationCountView.as_view(),name='Reactivation-yesterday-renewal-count'),
-    path('import',views.BulkImportView.as_view(),name='bulkupload')
+    path('import',views.BulkImportView.as_view(),name='bulkupload'),
+    path('otrReactivationReport/',views.OTRReactivationReportView.as_view(),name='otrReactivation_report')
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

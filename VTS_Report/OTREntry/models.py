@@ -30,7 +30,7 @@ class OTRData(SessionYearBase):
         extendedMonth=models.CharField(max_length=10,blank=True)
         nextExpirydate=models.DateField(null=True,blank=True)
         extendedDate=models.DateField(null=True,blank=True)
-        
+
 
         def save(self, *args, **kwargs):
          action = "Created" if self._state.adding else "Updated"

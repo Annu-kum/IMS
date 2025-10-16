@@ -21,7 +21,7 @@ import { useAuth } from '../../../account/AuthContext';
 
 const baseUrl='http://127.0.0.1:8000';
 
-export default function InstallReports() {
+export default function OtrReactivation_Report() {
   const [rows, setRows] = React.useState([]);
   const [rowModesModel, setRowModesModel] = React.useState({});
   const [DataFromChild,setDataFromChild]=React.useState('')
@@ -55,14 +55,13 @@ const adminmainColumn = [
   { field: 'Dealer_Name',align:'center', label: 'Dealer Name', width: 100,  },
   { field: 'NewRenewal',align:'center', label: 'New/Renewal', width: 100, },
   { field: 'OTR',align:'center',label: 'OTR', width: 100, },
-  { field: 'otrMonth',align:'center',label: 'OTR Month', width: 100, },
   { field: 'vehicle1',align:'center',  label: 'Vehicle No 1', width: 100, },
   { field: 'vehicle2',align:'center',  label: 'Vehicle No 2', width: 100,  },
   { field: 'vehicle3',align:'center',  label: 'Vehicle No 3', width: 100,  },
   { field: 'MILLER_TRANSPORTER_ID', align:'center',label: 'Miller/Transporter Id', width: 100,},
   { field: 'MILLER_NAME',align:'center',  label: 'Miller/Transporter Name', width: 100, },
   { field: 'MillerContactNo',align:'center', label: 'MillerContactNo', width: 100, },
-  { field: 'InstallationDate',align:'center',  label: 'Installation Date', width: 100 },
+  { field: 'ReactivationDate',align:'center',  label: 'Reactivation Date', width: 100 },
   { field: 'Employee_Name',align:'center',  label: 'Entry Employee Name', width: 100,  },
   { field: 'Device_Fault',align:'center',  label: 'Device Fault' ,width:100,  },
   { field: 'Fault_Reason',align:'center', label: 'Fault Reason', width: 100,  },
@@ -82,7 +81,7 @@ const userColumns = [
   { field: 'MILLER_TRANSPORTER_ID', align:'center',label: 'Miller/Transporter Id', width: 100,},
   { field: 'MILLER_NAME',align:'center',  label: 'Miller/Transporter Name', width: 100, },
   { field: 'MillerContactNo',align:'center', label: 'MillerContactNo', width: 100, },
-  { field: 'InstallationDate',align:'center',  label: 'Installation Date', width: 100 },
+  { field: 'ReactivationDate',align:'center',  label: 'Reactivation Date', width: 100 },
   { field: 'Replace_DeviceIMEI_NO',align:'center', label: 'Replace Device IMEI No', width: 100,  },
   { field: 'Remark1', align:'center',label: 'Remark 1', width: 100, },
   { field: 'Remark2',align:'center', label: 'Remark 2', width: 100, },
@@ -105,7 +104,7 @@ const userColumns = [
       const formattedStartDate = start ? formatDate(start) : undefined;
       const formattedEndDate = end ? formatDate(end) : undefined;
   
-      const response = await axios.get(`${baseUrl}/installation/getinstallerdetai/`, {
+      const response = await axios.get(`${baseUrl}/reactivation/otrReactivationReport/`, {
         params: {
           start_date: formattedStartDate,
           end_date: formattedEndDate,
@@ -143,7 +142,7 @@ const csvLinkRef = React.useRef();
     const formattedStartDate = startDate ? formatDate(startDate) : undefined;
     const formattedEndDate = endDate ? formatDate(endDate) : undefined;
 
-    const response = await axios.get(`${baseUrl}/installation/getinstallerdetai/`, {
+    const response = await axios.get(`${baseUrl}/reactivation/otrReactivationReport/`, {
       params: {
         start_date: formattedStartDate,
         end_date: formattedEndDate,
@@ -213,8 +212,7 @@ const adminHeader=[
   { key: 'Device_Name',align:'center', label: 'Device Name', width: 100, },
   { key: 'Dealer_Name',align:'center', label: 'Dealer Name', width: 100,  },
   { key: 'NewRenewal',align:'center', label: 'New/Renewal', width: 100, },
-  { key: 'OTR',align:'center',label: 'OTR Month', width: 100, },
-  { key: 'otrMonth',align:'center',label: 'OTR', width: 100, },
+  { key: 'OTR',align:'center',label: 'OTR', width: 100, },
   { key: 'Employee_Name',align:'center',  label: 'Entry Employee Name', width: 100,  },
   { key: 'Device_Fault',align:'center',  label: 'Device Fault' ,width:100,  },
   { key: 'Fault_Reason',align:'center', label: 'Fault Reason', width: 100,  },
@@ -232,7 +230,7 @@ const adminHeader=[
   { key: 'MILLER_TRANSPORTER_ID', align:'center',label: 'Miller/Transporter Id', width: 100,},
   { key: 'MILLER_NAME',align:'center',  label: 'Miller/Transporter Name', width: 100, },
   { key: 'MillerContactNo',align:'center', label: 'MillerContactNo', width: 100, },
-  { key: 'InstallationDate',align:'center',  label: 'Installation Date', width: 100 },
+  { key: 'ReactivationDate',align:'center',  label: 'Reactivation Date', width: 100 },
   { key: 'Replace_DeviceIMEI_NO',align:'center', label: 'Replace Device IMEI No', width: 100,  },
   { key: 'Remark1', align:'center',label: 'Remark 1', width: 100, },
   { key: 'Remark2',align:'center', label: 'Remark 2', width: 100, },
@@ -322,7 +320,7 @@ return (
            Export
           </Button>
           <CSVLink
-  filename="install_report.csv"
+  filename="otrreactivation_report.csv"
   headers={csvHeaders}
   data={csvdatas}
   ref={csvLinkRef}

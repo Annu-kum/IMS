@@ -359,7 +359,7 @@ class BulkImportView(generics.CreateAPIView):
         required_columns = [
             'MILLER_TRANSPORTER_ID', 'MILLER_NAME', 'district', 'MillerContactNo',
             'Dealer_Name', 'Entity_id', 'GPS_IMEI_NO', 'SIM_NO', 'Device_Name',
-            'NewRenewal', 'OTR', 'vehicle1', 'vehicle2', 'vehicle3',
+            'NewRenewal', 'OTR', 'otrMonth','vehicle1', 'vehicle2', 'vehicle3',
             'DeactivationDate', 'Employee_Name', 'Device_Fault', 'Fault_Reason',
             'Replace_DeviceIMEI_NO', 'Remark1', 'Remark2', 'Remark3'
         ]
@@ -403,6 +403,7 @@ class BulkImportView(generics.CreateAPIView):
                     Device_Name=row['Device_Name'],
                     NewRenewal=row['NewRenewal'],
                     OTR=row['OTR'],
+                    otrMonth=row['otrMonth'],
                     vehicle1=row['vehicle1'],
                     vehicle2=row['vehicle2'],
                     vehicle3=row['vehicle3'],

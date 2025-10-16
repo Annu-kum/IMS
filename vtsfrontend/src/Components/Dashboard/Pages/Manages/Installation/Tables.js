@@ -40,6 +40,7 @@ const columns = [
   // Add more columns as needed
   {id: 'NewRenewal',label: 'New/Renewal',minWidth: 170,align: 'right',format: (value) => value.toFixed(2),},
   {id: 'OTR',label: 'OTR',minWidth: 170,align: 'right', format: (value) => value.toFixed(2),},
+  {id: 'otrMonth',label: 'OTR Month',minWidth: 170,align: 'right', format: (value) => value.toFixed(2),},
   {id: 'vehicle1',label: 'Vehicle No 1',minWidth: 170,align: 'right', format: (value) => value.toFixed(2), },
   { id: 'vehicle2', label: 'Vehicle No 2', minWidth: 170, align: 'right', format: (value) => value.toFixed(2),},
   {id: 'vehicle3', label: 'Vehicle No 3', minWidth: 170, align: 'right', format: (value) => value.toFixed(2),},
@@ -110,6 +111,7 @@ const initialRow = {
   Device_Name:'',
   NewRenewal:'',
   OTR:'',
+  otrMonth:'',
   vehicle1:'',
   vehicle2:'',
   vehicle3:'',
@@ -146,6 +148,7 @@ const initialRow = {
   const[devicename,setdevicename]=useState('')
   const[newrenewal,setnewrenewal]=useState('')
   const[otr,setotr]=useState('')
+  const[otrMonths,setotrMonths]=useState('')
   const[vehicle1,setvehicle1]=useState('')
   const[vehicle2,setVehicle2]=useState('')
   const[vehicle3,setVehicle3]=useState('')
@@ -629,7 +632,16 @@ return (
                                   const inputs=e.target.value
                                   setotr(inputs)
                                    handleInputChange(row.id, column.id, inputs)}}
-                               />): column.id === 'vehicle1' ? (
+                               />):column.id === 'otrMonth' ?(
+                                     <TextField
+                                  value={row[column.id]}
+                                  size="small"
+                                 onChange={(e) =>{
+                                  const inputs=e.target.value
+                                  setotrMonths(inputs)
+                                   handleInputChange(row.id, column.id, inputs)}}
+                               />
+                               ): column.id === 'vehicle1' ? (
                                 <TextField
                                   value={row[column.id]}
                                   size="small"

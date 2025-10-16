@@ -12,7 +12,7 @@ class ReactivateSerializers(serializers.ModelSerializer):
     class Meta:
         model = ReactivationModels
         fields = ['id','MILLER_TRANSPORTER_ID','MILLER_NAME','Device_Name','district','MillerContactNo','Dealer_Name','Entity_id','GPS_IMEI_NO',
-                  'SIM_NO','NewRenewal','OTR','vehicle1','vehicle2','vehicle3',
+                  'SIM_NO','NewRenewal','OTR','otrMonth','vehicle1','vehicle2','vehicle3',
                   'ReactivationDate','Employee_Name',
                   'Device_Fault','Fault_Reason','Replace_DeviceIMEI_NO','Remark1','Remark2','Remark3','Reactivation_letterHead','extra_letterheads'] #New Update 081025
 
@@ -76,7 +76,7 @@ class ReactivatepostSerializers(SessionYearSerializer,serializers.ModelSerialize
     class Meta:
         model = ReactivationModels
         fields = ['id','MILLER_TRANSPORTER_ID','MILLER_NAME','Device_Name','district','MillerContactNo','Dealer_Name','Entity_id','GPS_IMEI_NO',
-                  'SIM_NO','NewRenewal','OTR','vehicle1','vehicle2','vehicle3',
+                  'SIM_NO','NewRenewal','OTR','otrMonth','vehicle1','vehicle2','vehicle3',
                   'ReactivationDate','Employee_Name',
                   'Device_Fault','Fault_Reason','Replace_DeviceIMEI_NO','Remark1','Remark2','Remark3','Reactivation_letterHead','extra_letterheads',  #New Update 081025
 
@@ -162,7 +162,7 @@ class ReactivateUpdateSerializers(SessionYearSerializer,serializers.ModelSeriali
     class Meta:
         model = ReactivationModels
         fields = ['id','MILLER_TRANSPORTER_ID','MILLER_NAME','Device_Name','district','MillerContactNo','Dealer_Name','Entity_id','GPS_IMEI_NO',
-                  'SIM_NO','NewRenewal','OTR','vehicle1','vehicle2','vehicle3',
+                  'SIM_NO','NewRenewal','OTR','otrMonth','vehicle1','vehicle2','vehicle3',
                   'ReactivationDate','Employee_Name',
                   'Device_Fault','Fault_Reason','Replace_DeviceIMEI_NO','Remark1','Remark2','Remark3','Reactivation_letterHead'
 

@@ -114,7 +114,6 @@ export default function BulkUpload(props) {
       setuploadFile('')
       handleClose();
     } catch (error) {
-      console.log(error)
       if (error.response) {
         toast.error('Error: Due to Duplicate value',{
           theme:"light",

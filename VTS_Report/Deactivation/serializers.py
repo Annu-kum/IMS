@@ -14,7 +14,7 @@ class DeactivateSerializers(serializers.ModelSerializer):
     class Meta:
         model = DeactivationModels
         fields = ['id','MILLER_TRANSPORTER_ID','MILLER_NAME','Device_Name','district','MillerContactNo','Dealer_Name','Entity_id','GPS_IMEI_NO',
-                  'SIM_NO','NewRenewal','OTR','vehicle1','vehicle2','vehicle3',
+                  'SIM_NO','NewRenewal','OTR','otrMonth','vehicle1','vehicle2','vehicle3',
                 'DeactivationDate','Employee_Name',
                   'Device_Fault','Fault_Reason','Replace_DeviceIMEI_NO','Remark1','Remark2','Remark3','Deactivation_letterHead','extra_letterheads'] #New Update 111025
 
@@ -152,7 +152,7 @@ class DeactivatepostSerializers(SessionYearSerializer, serializers.ModelSerializ
     DeactivationDate = serializers.DateField(
         required=False,
         allow_null=True,
-        input_formats=['%d-%m-%Y', '%Y-%m-%d']  # ✅ Accept both formats
+        input_formats=['%d-%m-%Y', '%Y-%m-%d']  # Accept both formats
     )
 
     Deactivation_letterHead = serializers.ListField(
@@ -168,23 +168,23 @@ class DeactivatepostSerializers(SessionYearSerializer, serializers.ModelSerializ
         fields = [
             'id', 'MILLER_TRANSPORTER_ID', 'MILLER_NAME', 'Device_Name', 'district',
             'MillerContactNo', 'Dealer_Name', 'Entity_id', 'GPS_IMEI_NO', 'SIM_NO',
-            'NewRenewal', 'OTR', 'vehicle1', 'vehicle2', 'vehicle3',
+            'NewRenewal', 'OTR','otrMonth', 'vehicle1', 'vehicle2', 'vehicle3',
             'DeactivationDate', 'Employee_Name', 'Device_Fault', 'Fault_Reason',
             'Replace_DeviceIMEI_NO', 'Remark1', 'Remark2', 'Remark3',
             'Deactivation_letterHead', 'extra_letterheads'
         ]
 
     def create(self, validated_data):
-        # ✅ Correct key name
+        #  Correct key name
         files = validated_data.pop("Deactivation_letterHead", [])
         deactivation = super().create(validated_data)
 
         if files:
-            # ✅ Assign first file to main FileField
+            #  Assign first file to main FileField
             deactivation.Deactivation_letterHead = files[0]
             deactivation.save()
 
-            # ✅ Save remaining files to related model
+            #  Save remaining files to related model
             for f in files[1:]:
                 DeactivationExtraLetterHead.objects.create(deactivation=deactivation, file=f)
 
@@ -208,7 +208,7 @@ class DeactivatepostSerializers(SessionYearSerializer, serializers.ModelSerializ
         if instance.DeactivationDate:
             representation['DeactivationDate'] = instance.DeactivationDate.strftime('%d-%m-%Y')
 
-        # ✅ Add absolute URLs
+        #  Add absolute URLs
         request = self.context.get('request')
         if instance.Deactivation_letterHead and hasattr(instance.Deactivation_letterHead, 'url'):
             representation['Deactivation_letterHead'] = request.build_absolute_uri(instance.Deactivation_letterHead.url)
@@ -226,7 +226,7 @@ class DeactivateUpdatesSerializers(SessionYearSerializer,serializers.ModelSerial
     class Meta:
         model = DeactivationModels
         fields = ['id','MILLER_TRANSPORTER_ID','MILLER_NAME','Device_Name','district','MillerContactNo','Dealer_Name','Entity_id','GPS_IMEI_NO',
-                  'SIM_NO','NewRenewal','OTR','vehicle1','vehicle2','vehicle3',
+                  'SIM_NO','NewRenewal','OTR','otrMonth','vehicle1','vehicle2','vehicle3',
                 'DeactivationDate','Employee_Name',
                   'Device_Fault','Fault_Reason','Replace_DeviceIMEI_NO','Remark1','Remark2','Remark3','Deactivation_letterHead']
 

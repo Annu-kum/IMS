@@ -50,6 +50,8 @@ class InstallatonModels(SessionYearBase):
     Remark3 = models.CharField(max_length=350,blank=True)
     Installation_letterHead = models.FileField(upload_to='installation_letterheads/',validators=[validate_file_extension],null=True,blank=True,default='')
     flag=models.CharField(max_length=15,null=True,default='old')
+    otrMonth=models.CharField(max_length=15,blank=True, null=True)
+
         #  New field for session-year
  
 
