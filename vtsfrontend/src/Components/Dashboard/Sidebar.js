@@ -34,6 +34,7 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const {auth} = useAuth();
+  const session = localStorage.getItem('sess')
 
   const handleClick = () => {
     setOpen(!open);
@@ -61,11 +62,28 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle }) => {
       }}
     >
            <List disablePadding>
-        <Toolbar sx={{ marginBottom: "10px" }}>
-          <Stack sx={{ width: "100%" }} direction="row" justifyContent="center">
-            <Typography fontWeight="600">IMS</Typography>
+       <Toolbar sx={{ mb: 1 }}>
+          <Stack sx={{ width: "100%" }} direction="column" alignItems="center" spacing={0.5}>
+            <Typography variant="h6" sx={{ fontWeight: 700, letterSpacing: 0.8 }}>
+              IMS
+            </Typography>
+            <Box
+              sx={{
+                background: "#1976d2",
+                color: "white",
+                px: 1.5,
+                py: 0.3,
+                borderRadius: "12px",
+                fontSize: "15px",
+                fontWeight: 600,
+              }}
+            >
+              Session {session}
+            </Box>
           </Stack>
         </Toolbar>
+
+        <Divider sx={{ borderColor: "rgba(255,255,255,0.15)", mb: 1 }} />
 
         {auth.isSuperuser && (
           <>

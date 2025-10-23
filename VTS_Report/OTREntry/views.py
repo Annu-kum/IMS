@@ -23,7 +23,8 @@ from datetime import timedelta,datetime
 import logging
 from account.utility import SessionYearMixin
 from account.utility import get_user_session_year
-
+from Reactivation.models import ReactivationModels
+from Reactivation.serializers import ReactivateSerializers
 logger = logging.getLogger(__name__)
 class Paginations(PageNumberPagination):
     page_size=10
@@ -221,3 +222,67 @@ class getOTRdata(SessionYearMixin, generics.ListAPIView):
             formatted_data.append(item)
 
         return Response(formatted_data, status=200)
+    
+class getReactivationOTRdata(SessionYearMixin, generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    queryset = ReactivationModels.objects.all()  #  Base queryset for SessionYearMixin
+
+    def get_queryset(self):
+        # Start with session-year filtered queryset
+        queryset = super().get_queryset().order_by('-id')
+
+        start_date = self.request.query_params.get('start_date', None)
+        end_date = self.request.query_params.get('end_date', None)
+
+        if start_date and end_date:
+            try:
+                start_date = datetime.strptime(start_date, '%d-%m-%Y').date()
+                end_date = datetime.strptime(end_date, '%d-%m-%Y').date()
+                queryset = queryset.filter(ReactivationDate__range=(start_date, end_date))
+            except ValueError as e:
+                logger.error(f"Date parsing error: {e}")
+
+        return queryset.filter(~Q(OTR=''))  #  Only non-empty OTR
+
+    def get(self, request, *args, **kwargs):
+        queryset = self.get_queryset().values()
+
+        # Format ReactivationDate to dd-mm-yyyy
+        formatted_data = []
+        for item in queryset:
+            if item.get('ReactivationDate'):
+                item['ReactivationDate'] = item['ReactivationDate'].strftime('%d-%m-%Y')
+            formatted_data.append(item)
+
+        return Response(formatted_data, status=200)
+
+class GetDetailsByIMEI(SessionYearMixin,generics.ListAPIView):
+    """
+    Retrieve details of a GPS IMEI number from either ReactivationModels or InstallationModels.
+    Reactivation data takes priority if the IMEI exists in both tables.
+    """
+    permission_classes = [IsAuthenticated]  
+    def get(self, request, GPS_IMEI_NO):
+        imei = GPS_IMEI_NO.strip()
+
+        #  Check Reactivation table first (priority)
+        react_instance = ReactivationModels.objects.filter(GPS_IMEI_NO__iexact=imei).order_by('-id').first()
+        if react_instance:
+            serializer = ReactivateSerializers(react_instance, context={'request': request})
+            data = serializer.data
+            data['source_type'] = 'reactivation'
+            return Response(data, status=status.HTTP_200_OK)
+
+        #  If not found, fallback to Installation table
+        install_instance = InstallatonModels.objects.filter(GPS_IMEI_NO__iexact=imei).order_by('-id').first()
+        if install_instance:
+            serializer = InstallSerializers(install_instance, context={'request': request})
+            data = serializer.data
+            data['source_type'] = 'installation'
+            return Response(data, status=status.HTTP_200_OK)
+
+        #  If not found in either
+        return Response(
+            {"detail": f"No record found for IMEI {imei} in Installation or Reactivation."},
+            status=status.HTTP_404_NOT_FOUND
+        )

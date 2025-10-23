@@ -11,6 +11,7 @@ class OtrgetSerializers(serializers.ModelSerializer):
     ExpiryDate = serializers.DateField(format='%d-%m-%Y', input_formats=['%d-%m-%Y'], required=False, allow_null=True)
     nextExpirydate = serializers.DateField(format='%d-%m-%Y', input_formats=['%d-%m-%Y'], required=False, allow_null=True)
     extendedDate=serializers.DateField(format='%d-%m-%Y', input_formats=['%d-%m-%Y'], required=False, allow_null=True)
+    extendedDate=serializers.SerializerMethodField()
     InstallationDate= serializers.DateField(format='%d-%m-%Y', input_formats=['%d-%m-%Y'], required=False, allow_null=True)
     InstallationDate = serializers.SerializerMethodField()
     class Meta:
