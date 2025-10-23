@@ -2,7 +2,7 @@ import React, { useRef,useEffect, useState } from 'react';
 import Paper from '@mui/material/Paper';
 import { IconButton, TextField, Button, } from '@mui/material';
 import { Box ,Menu} from '@mui/material';
-import { addMonths,format,parse } from 'date-fns';
+import { addMonths,format,parse,parseISO } from 'date-fns';
 import { useTheme } from '@mui/material';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import axios from 'axios';
@@ -86,58 +86,84 @@ export default function DataEntry() {
 
   useEffect(() => {
     if (gpsimeino) {
-      axios.get(`${baseUrl}/otrentries/gpsno/${gpsimeino}`)
+      axios.get(`${baseUrl}/otrentries/getdetailsbyimei/${gpsimeino}`,{
+        headers:headers
+      })
         .then((res) => {
           const data = res.data;
          
 
-     setMlID(data.MILLER_TRANSPORTER_ID);
-     setMillerName(data.MILLER_NAME);
-     setdistrict(data.district);
-     setMAcontactno(data.MillerContactNo);
-     setDealername(data.Dealer_Name);
-     setEntityid(data.Entity_id);
-     setsimno(data.SIM_NO);
-     setdevicename(data.Device_Name);
-     setnewrenewal(data.NewRenewal);
-     setotr(data.OTR);
-     setotrMonths(data.otrMonth)
-     setvehicle1(data.vehicle1);
-     setVehicle2(data.vehicle2);
-     setVehicle3(data.vehicle3);
-     setinstalldate(data.InstallationDate);
-     setemployeename(data.Employee_Name);
-     setdevicefault(data.devicefault)
-     setfaultreason(data.Device_Fault)
-     setDeviceimei(data.Replace_DeviceIMEI_NO);
+     setMlID(data.MILLER_TRANSPORTER_ID || "");
+     setMillerName(data.MILLER_NAME || "");
+     setdistrict(data.district || "");
+     setMAcontactno(data.MillerContactNo || "");
+     setDealername(data.Dealer_Name || "");
+     setEntityid(data.Entity_id || "");
+     setsimno(data.SIM_NO || "");
+     setdevicename(data.Device_Name || "");
+     setnewrenewal(data.NewRenewal || "");
+     setotr(data.OTR || "");
+     setotrMonths(data.otrMonth || "")
+     setvehicle1(data.vehicle1 || "");
+     setVehicle2(data.vehicle2 || "");
+     setVehicle3(data.vehicle3 || "");
+     setinstalldate(data.InstallationDate || data.ReactivationDate || "");
+     setemployeename(data.Employee_Name || "");
+     setdevicefault(data.devicefault || "")
+     setfaultreason(data.Device_Fault || "")
+     setDeviceimei(data.Replace_DeviceIMEI_NO || "");
         })
-        .catch((err) => toast.error("something went wrong"));
+        .catch((err) => console.log(err));
     }
   }, [gpsimeino]);
 
 
 
-  useEffect(() => {
-    // Set up interval to update expiry date 
-    const interval = setInterval(() => {
-      if (installdate) {
-      const givenDate= parse(installdate,'dd-MM-yyyy',new Date()); 
-      let months=parseInt(otrMonths,10)
-      const monthsToAdd = isNaN(months) || months <= 0 ? 6 : months;
-      const newDate = addMonths(givenDate,months);
-      const dateformate = format(newDate,'dd-MM-yyyy');
-        setExpirydate(dateformate);
+useEffect(() => {
+  const interval = setInterval(() => {
+    try {
+      if (!installdate) return;
+
+      // Try to detect if installdate is already a valid Date string
+      let givenDate;
+      if (typeof installdate === 'string') {
+        // check if installdate has '-' separator and is in valid format
+        if (installdate.includes('-')) {
+          givenDate = parse(installdate, 'dd-MM-yyyy', new Date());
+        } else {
+          // fallback if it's ISO format or another style
+          givenDate = new Date(installdate);
+        }
+      } else {
+        givenDate = installdate;
       }
-    }, 2000);
 
-    // Cleanup function to clear the interval
-    return () => clearInterval(interval);
-  }, [installdate]); 
+      // validate the parsed date
+      if (isNaN(givenDate.getTime())) {
+        console.warn("⚠️ Invalid installation date:", installdate);
+        return;
+      }
 
+      // parse otrMonth safely
+      const monthsToAdd = parseInt(otrMonths, 10);
+      const finalMonths = isNaN(monthsToAdd) || monthsToAdd <= 0 ? 6 : monthsToAdd;
+
+      // add months and format result
+      const newDate = addMonths(givenDate, finalMonths);
+      const dateFormatted = format(newDate, 'dd-MM-yyyy');
+      setExpirydate(dateFormatted);
+    } catch (err) {
+      console.error("Error calculating expiry date:", err);
+    }
+  }, 2000);
+
+  return () => clearInterval(interval);
+}, [installdate, otrMonths]);
 
 
   const nextexdate=() => {
     // Set up interval to update expiry date 
+    console.log(extendedDate,extendedMonth)
       if (!extendedDate || !extendedMonth) return;
       const num = parseInt(extendedMonth, 10);
       const givenDate = parse(extendedDate, 'dd-MM-yyyy', new Date()); 
@@ -547,15 +573,24 @@ const ITEM_HEIGHT = 48;
             <Box sx={{ fontWeight: 'bold' }}>
                 <label>Extended Date</label>
                 <TextField
-                fullWidth
-                variant="filled"
-                type="date"
-                value={extendedDate} 
-                onChange={(e)=>setExtendedDate(e.target.value)}  
-                sx={{ gridColumn: "span 4" }}
-                SelectProps={{ native: true }}
-                InputProps={{sx:{height:'40px'}}}
-              /> 
+  fullWidth
+  variant="filled"
+  type="date"
+  value={
+    // ensure value is always yyyy-MM-dd for <input type="date" />
+    extendedDate
+      ? format(parse(extendedDate, "dd-MM-yyyy", new Date()), "yyyy-MM-dd")
+      : ""
+  }
+  onChange={(e) => {
+    const isoValue = e.target.value; // "2026-02-11"
+    const formattedValue = format(parseISO(isoValue), "dd-MM-yyyy"); // convert to "11-02-2026"
+    setExtendedDate(formattedValue);
+  }}
+  sx={{ gridColumn: "span 4" }}
+  SelectProps={{ native: true }}
+  InputProps={{ sx: { height: "40px" } }}
+/>
               </Box>
               <Box sx={{ fontWeight: 'bold' }}>
                 <label>Extended Month</label>

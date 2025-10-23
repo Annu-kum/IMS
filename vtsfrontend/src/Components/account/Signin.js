@@ -54,6 +54,7 @@ export default function LoginApp() {
       });
 
       localStorage.setItem("Token", response.data.Token);
+      localStorage.setItem("sess",response.data.session_year);
 
       const whoamiRes = await axios.get(`${baseUrl}/accounts/whoiam/`, {
         headers: {

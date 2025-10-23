@@ -13,8 +13,9 @@ import "react-toastify/dist/ReactToastify.css";
 import RefreshIcon from '@mui/icons-material/Refresh'
 import {CircularProgress} from '@mui/material';
 import { useAuth } from '../../../account/AuthContext';
-import { addMonths,format,parse,isAfter,isSameDay,isBefore } from 'date-fns';
+// import { addMonths,format,parse,isAfter,isSameDay,isBefore } from 'date-fns';
 import {CSVLink} from 'react-csv';
+import { parse, addMonths, addDays, format, isAfter, isBefore, isSameDay } from 'date-fns';
 
 const baseUrl="http://127.0.0.1:8000"
 
@@ -34,77 +35,136 @@ export default function OtrExpireDetails() {
 
 //Main Implementation...
 
-
-
-  
- const fetchData = async () => {
+// Main function
+const fetchData = async () => {
   setLoading(true);
   try {
-    const [installRes, otrRes] = await Promise.all([
+    // Fetch installation, OTR, and reactivation data in parallel
+    const [installRes, otrRes, reactRes] = await Promise.all([
       axios.get(`${baseUrl}/otrentries/getOTRinstall`, { headers }),
       axios.get(`${baseUrl}/otrentries/getallotr`, { headers }),
+      axios.get(`${baseUrl}/otrentries/getOTRreactivate`, { headers }),
     ]);
 
-    const installData = installRes.data;
-    const otrData = otrRes.data;
+    const installData = installRes.data || [];
+    const otrData = otrRes.data || [];
+    const reactData = reactRes.data || [];
     const today = new Date();
 
-    const enrichedData = installData.map(item => {
-      const imeiNo = item.GPS_IMEI_NO?.trim();
-      let parsedInstallDate;
-      let finalExpireDate;
-      let showInOTRTable = true;      
-
-      if (item.InstallationDate && typeof item.InstallationDate === 'string') {
-        try {                
-          // Parse number safely — fallback to 6 if blank, null, or invalid
-          const num = parseInt(item.otrMonth, 10);
-          const monthsToAdd = isNaN(num) || num <= 0 ? 6 : num;
-          parsedInstallDate = parse(item.InstallationDate, 'dd-MM-yyyy', new Date());
-          finalExpireDate = addMonths(parsedInstallDate, monthsToAdd);
-        } catch (err) {
-          console.warn('Invalid InstallationDate:', item.InstallationDate);
-          return null;
-        }
-      } else {
-        console.warn('Missing InstallationDate:', item);
+    // Helper: Safe date parsing + add months
+    const computeExpireFromRecord = (record, dateFields = ['InstallationDate', 'ReactivationDate']) => {
+      const dateStr = dateFields.map(f => record[f]).find(Boolean);
+      if (!dateStr || typeof dateStr !== 'string') return null;
+      try {
+        const num = parseInt(record.otrMonth, 10);
+        const monthsToAdd = isNaN(num) || num <= 0 ? 6 : num;
+        const parsed = parse(dateStr, 'dd-MM-yyyy', new Date());
+        const final = addMonths(parsed, monthsToAdd);
+        return final;
+      } catch (err) {
+        console.warn('Invalid date on record:', record);
         return null;
       }
+    };
 
-      const matchingOtr = otrData.find(
-        otr => otr.GPS_IMEI_NO?.trim() === imeiNo && otr.nextExpirydate
-      );
+    // Build OTR map keyed by IMEI
+    const otrMap = {};
+    otrData.forEach(o => {
+      const imei = (o.GPS_IMEI_NO || '').trim();
+      if (!imei) return;
+      otrMap[imei] = o; // if duplicates, last wins
+    });
 
-      if (matchingOtr && typeof matchingOtr.nextExpirydate === 'string') {
+    // Combine sources
+    const combined = {}; // imei => { installRecord, reactRecord, installExpire, reactExpire }
+
+    // Process installation records
+    installData.forEach(item => {
+      const imei = (item.GPS_IMEI_NO || '').trim();
+      if (!imei) return;
+      const installExpire = computeExpireFromRecord(item, ['InstallationDate']);
+      combined[imei] = combined[imei] || {};
+      combined[imei].installRecord = item;
+      combined[imei].installExpire = installExpire;
+    });
+
+    // Process reactivation records
+    reactData.forEach(item => {
+      const imei = (item.GPS_IMEI_NO || '').trim();
+      if (!imei) return;
+      const reactExpire = computeExpireFromRecord(item, ['ReactivationDate', 'InstallationDate']);
+      combined[imei] = combined[imei] || {};
+      combined[imei].reactRecord = item;
+      combined[imei].reactExpire = reactExpire;
+    });
+
+    const finalRows = [];
+
+    // Evaluate expiry per IMEI
+    Object.keys(combined).forEach(imei => {
+      const entry = combined[imei];
+      const otrRow = otrMap[imei];
+      const candidateDates = [];
+
+      // Prioritize OTR Extend date first
+      if (otrRow && otrRow.nextExpirydate) {
         try {
-          const parsedNextExpire = parse(matchingOtr.nextExpirydate, 'dd-MM-yyyy', new Date());
-        if (isAfter(parsedNextExpire, today)) {
-  showInOTRTable = false;
-} else if (isSameDay(parsedNextExpire, today)) {
-  finalExpireDate = parsedNextExpire;
-  showInOTRTable = true;
-} else {
-  finalExpireDate = parsedNextExpire;
-  showInOTRTable = true;
-}
+          const parsedNext = parse(otrRow.nextExpirydate, 'dd-MM-yyyy', new Date());
+          candidateDates.push(parsedNext);
         } catch (err) {
-          console.warn('Invalid nextExpirydate:', matchingOtr.nextExpirydate);
+          console.warn('Invalid nextExpirydate format for', imei);
         }
       }
 
-      return {
-        ...item,
-        ExpireDate: format(finalExpireDate, 'dd-MM-yyyy'),
-        showInOTRTable,
-      };
-    }).filter(Boolean);
+      // Add reactivation and installation expiry
+      if (entry.reactExpire) candidateDates.push(entry.reactExpire);
+      if (entry.installExpire) candidateDates.push(entry.installExpire);
 
-    const filteredData = enrichedData.filter(item => {
-      const parsedExpire = parse(item.ExpireDate, 'dd-MM-yyyy', new Date());
-      return item.showInOTRTable && (isSameDay(parsedExpire, today) || isBefore(parsedExpire, today));
+      if (!candidateDates.length) return;
+
+      // Pick the most recent expiry date
+      const finalExpireDate = candidateDates.reduce((a, b) => (isAfter(a, b) ? a : b));
+
+      // Check next day logic
+      const showFromNextDay = addDays(finalExpireDate, 1);
+
+      // If next day is same or before today, show
+      if (isSameDay(showFromNextDay, today) || isBefore(showFromNextDay, today)) {
+        const sourceRecord = entry.reactRecord || entry.installRecord || {};
+        const row = {
+          ...sourceRecord,
+          GPS_IMEI_NO: imei,
+          ExpireDate: format(finalExpireDate, 'dd-MM-yyyy'),
+          showInOTRTable: true,
+        };
+        finalRows.push(row);
+      }
     });
 
-    const dataWithImeiFlag = markDuplicateGPSIMEI(filteredData);
+    // Include OTR-only records that have expired and not covered yet
+    Object.keys(otrMap).forEach(imei => {
+      if (combined[imei]) return;
+      const otrRow = otrMap[imei];
+      if (!otrRow.nextExpirydate) return;
+      try {
+        const parsedNext = parse(otrRow.nextExpirydate, 'dd-MM-yyyy', new Date());
+        const showFromNextDay = addDays(parsedNext, 1);
+        if (isSameDay(showFromNextDay, today) || isBefore(showFromNextDay, today)) {
+          const row = {
+            ...otrRow,
+            GPS_IMEI_NO: imei,
+            ExpireDate: format(parsedNext, 'dd-MM-yyyy'),
+            showInOTRTable: true,
+          };
+          finalRows.push(row);
+        }
+      } catch (err) {
+        console.warn('Invalid OTR nextExpirydate:', imei);
+      }
+    });
+
+    // Mark duplicates and update state
+    const dataWithImeiFlag = markDuplicateGPSIMEI(finalRows);
     setRows(dataWithImeiFlag);
 
   } catch (error) {
@@ -113,6 +173,85 @@ export default function OtrExpireDetails() {
     setLoading(false);
   }
 };
+
+
+  
+//  const fetchData = async () => {
+//   setLoading(true);
+//   try {
+//     const [installRes, otrRes] = await Promise.all([
+//       axios.get(`${baseUrl}/otrentries/getOTRinstall`, { headers }),
+//       axios.get(`${baseUrl}/otrentries/getallotr`, { headers }),
+//     ]);
+
+//     const installData = installRes.data;
+//     const otrData = otrRes.data;
+//     const today = new Date();
+
+//     const enrichedData = installData.map(item => {
+//       const imeiNo = item.GPS_IMEI_NO?.trim();
+//       let parsedInstallDate;
+//       let finalExpireDate;
+//       let showInOTRTable = true;      
+
+//       if (item.InstallationDate && typeof item.InstallationDate === 'string') {
+//         try {                
+//           // Parse number safely — fallback to 6 if blank, null, or invalid
+//           const num = parseInt(item.otrMonth, 10);
+//           const monthsToAdd = isNaN(num) || num <= 0 ? 6 : num;
+//           parsedInstallDate = parse(item.InstallationDate, 'dd-MM-yyyy', new Date());
+//           finalExpireDate = addMonths(parsedInstallDate, monthsToAdd);
+//         } catch (err) {
+//           console.warn('Invalid InstallationDate:', item.InstallationDate);
+//           return null;
+//         }
+//       } else {
+//         console.warn('Missing InstallationDate:', item);
+//         return null;
+//       }
+
+//       const matchingOtr = otrData.find(
+//         otr => otr.GPS_IMEI_NO?.trim() === imeiNo && otr.nextExpirydate
+//       );
+
+//       if (matchingOtr && typeof matchingOtr.nextExpirydate === 'string') {
+//         try {
+//           const parsedNextExpire = parse(matchingOtr.nextExpirydate, 'dd-MM-yyyy', new Date());
+//         if (isAfter(parsedNextExpire, today)) {
+//   showInOTRTable = false;
+// } else if (isSameDay(parsedNextExpire, today)) {
+//   finalExpireDate = parsedNextExpire;
+//   showInOTRTable = true;
+// } else {
+//   finalExpireDate = parsedNextExpire;
+//   showInOTRTable = true;
+// }
+//         } catch (err) {
+//           console.warn('Invalid nextExpirydate:', matchingOtr.nextExpirydate);
+//         }
+//       }
+
+//       return {
+//         ...item,
+//         ExpireDate: format(finalExpireDate, 'dd-MM-yyyy'),
+//         showInOTRTable,
+//       };
+//     }).filter(Boolean);
+
+//     const filteredData = enrichedData.filter(item => {
+//       const parsedExpire = parse(item.ExpireDate, 'dd-MM-yyyy', new Date());
+//       return item.showInOTRTable && (isSameDay(parsedExpire, today) || isBefore(parsedExpire, today));
+//     });
+
+//     const dataWithImeiFlag = markDuplicateGPSIMEI(filteredData);
+//     setRows(dataWithImeiFlag);
+
+//   } catch (error) {
+//     console.error('Error fetching data:', error);
+//   } finally {
+//     setLoading(false);
+//   }
+// };
 
       
 

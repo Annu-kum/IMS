@@ -519,7 +519,7 @@ const columns = auth.isSuperuser
   : baseColumns;
 
 
-
+    
   return (
     <>
       <Box m="9px">

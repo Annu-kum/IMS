@@ -11,4 +11,6 @@ urlpatterns = [
   path('updatebyid/<int:id>',views.updateOTRviewsets.as_view(),name='update'),
   path('getbygpsno/<int:id>',views.GetOTRGPSIMEINOviewset.as_view(),name='getbygps'),
   path('getOTRinstall',views.getOTRdata.as_view(),name='otrinstallationdata'),
+  path('getOTRreactivate',views.getReactivationOTRdata.as_view(),name='otrreactivationdata'),
+  path('getdetailsbyimei/<str:GPS_IMEI_NO>/',views.GetDetailsByIMEI.as_view(), name='getdetailsbyimei'),
 ]
