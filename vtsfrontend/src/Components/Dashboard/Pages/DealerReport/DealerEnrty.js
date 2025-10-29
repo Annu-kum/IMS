@@ -123,6 +123,7 @@ const getData = async ()=>{
   }, 
     headers})
   setfetchDealers(response.data.results)
+  setDatacount(response.data.count)
  }
 useEffect(()=>{
   getData()
@@ -535,7 +536,7 @@ return (
                    rowsPerPageOptions={[25,50,100,150,200]}
                    rowsPerPage={rowsPerPage}
                    page={page}
-                   count={fetchDealer.length}
+                   count={datacount}
                    component="div"
                    onPageChange={handlechangepage}
                    onRowsPerPageChange={handleRowsPerPage}>
