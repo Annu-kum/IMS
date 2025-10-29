@@ -54,6 +54,7 @@ class GetDealerViewset(SessionYearMixin,generics.ListAPIView):
     permission_classes=[AllowAny]
     filter_backends=[filters.SearchFilter]
     search_fields=['Dealer_Name']
+    pagination_class=Paginations
 
 class PostDealer(generics.CreateAPIView):
     queryset=Dealersmodel.objects.all().order_by('Dealer_Name')

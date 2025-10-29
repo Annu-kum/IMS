@@ -79,6 +79,7 @@ const baseUrl= 'http://127.0.0.1:8000'
  const [recordForEdit, setRecordForEdit] = useState(null)
  const [openPopup, setOpenPopup] = useState(false)
  const  [openDialog,setOpenDialog] = useState(false)
+ const [datacount,setDatacount]=React.useState(0) 
  const token = localStorage.getItem('Token');
  const headers = {
    'content-type': 'application/json',
@@ -112,6 +113,7 @@ const dialogbox=()=>{
 const getData = async ()=>{
   const response = await axios.get(`${baseUrl}/millers/getmillerss/`,{headers})
   setmlDetails(response.data.results)
+  setDatacount(response.data.count)
  }
 useEffect(()=>{
   getData()
@@ -525,7 +527,7 @@ return (
                    rowsPerPageOptions={[25,50,100,150]}
                    rowsPerPage={rowsPerPage}
                    page={page}
-                   count={fetchMldetails.length}
+                   count={datacount}
                    component="div"
                    onPageChange={handlechangepage}
                    onRowsPerPageChange={handleRowsPerPage}>
