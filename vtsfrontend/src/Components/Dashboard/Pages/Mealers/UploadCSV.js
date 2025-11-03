@@ -23,8 +23,12 @@ export default function UploadCSV(props) {
   const[files,setFiles]=React.useState([])
   const[uploadFile,setuploadFile]=React.useState([])
   const FileInputref = React.useRef(null)
-  const sampleFileUrl = 'http://127.0.0.1:8000/images/MillersSample.xlsx';
-
+  const sampleFileUrl = 'http://127.0.0.1:3000/images/MillersSample.xlsx';
+  const token = localStorage.getItem('Token');  
+  const headers = {
+     'Content-Type': 'multipart/form-data',
+     'Authorization': `Token ${token}`,
+   };
  
     const downloadSampleFile = async (url) => {
         try {
@@ -39,7 +43,7 @@ export default function UploadCSV(props) {
       
           // Get filename from content-disposition header
           const contentDisposition = response.headers.get('content-disposition');
-          let filename = 'MillerssSample.xls';  // Default filename
+          let filename = 'MillerssSample.xlsx';  // Default filename
           if (contentDisposition) {
             const matches = /filename="(.+)"/.exec(contentDisposition);
             if (matches != null && matches[1]) {
@@ -89,9 +93,7 @@ export default function UploadCSV(props) {
 
     try {
       const response = await axios.post(`${baseUrl}/millers/import/`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
+        headers: headers,
       });
       toast.success(response.data.message,{
         theme:"light",

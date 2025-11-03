@@ -341,6 +341,36 @@ const adminMaincolumn=[
         </IconButton>
       ),
     },
+      {
+      field: 'extra_letterheads',
+      headerName: 'Extra LetterHeads',
+      align: 'center',
+      headerAlign: 'center',
+      width: 100,
+      headerClassName: 'head',
+      renderCell: (params) => {
+        const files = params.row.extra_letterheads || [];
+        if (files.length === 0) return <span>--</span>;
+    
+        return (
+          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+            {files.map((url, index) => (
+              <Box key={index} sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, mb: '4px' }}>
+    
+                <a
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ fontSize: '14px', color: 'blue', textDecoration: 'none' }}
+                >
+                  File {index + 1}
+                </a>
+              </Box>
+            ))}
+          </Box>
+        );
+      },
+    },
    
     { field: 'Replace_DeviceIMEI_NO', headerAlign:'center',align:'center', headerName: 'Replace Device IMEI No', width: 150, editable: true,headerClassName:'head' },
     { field: 'Remark1', align:'center', headerAlign:'center',headerName: 'Remark 1', width: 80, editable: true ,headerClassName:'head'},
@@ -376,6 +406,36 @@ const adminMaincolumn=[
         <DownloadIcon/>
         </IconButton>
       ),
+    },
+      {
+      field: 'extra_letterheads',
+      headerName: 'Extra LetterHeads',
+      align: 'center',
+      headerAlign: 'center',
+      width: 100,
+      headerClassName: 'head',
+      renderCell: (params) => {
+        const files = params.row.extra_letterheads || [];
+        if (files.length === 0) return <span>--</span>;
+    
+        return (
+          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+            {files.map((url, index) => (
+              <Box key={index} sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, mb: '4px' }}>
+    
+                <a
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ fontSize: '14px', color: 'blue', textDecoration: 'none' }}
+                >
+                  File {index + 1}
+                </a>
+              </Box>
+            ))}
+          </Box>
+        );
+      },
     },
    
     { field: 'Replace_DeviceIMEI_NO', headerAlign:'center',align:'center', headerName: 'Replace Device IMEI No', width: 150, editable: true,headerClassName:'head' },
