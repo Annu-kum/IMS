@@ -40,7 +40,7 @@ export default function DeactivationReport() {
   const [startDate,setStartRange]=React.useState(new Date())
   const [endDate,setEndRanges]=React.useState(new Date())
   const [search,setSearch]=React.useState('')
-   const [datacount,setDatacount]=React.useState(0)
+  const [datacount,setDatacount]=React.useState(0)
    
    const{auth} = useAuth();
  //columns of the table...

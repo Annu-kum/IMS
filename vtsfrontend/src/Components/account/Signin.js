@@ -76,6 +76,7 @@ export default function LoginApp() {
 
       setTimeout(() => {
         localStorage.removeItem("Token");
+        localStorage.removeItem("sess")
         setAuth({ isSuperuser: false });
         navigate("/");
       }, 60 * 60 * 1000);

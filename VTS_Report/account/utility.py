@@ -1,5 +1,6 @@
 from .models import UserSessionYear
 from rest_framework.authtoken.models import Token
+from django.db.models import Q
 
 def get_user_session_year(user):
     """
@@ -35,6 +36,11 @@ class SessionYearMixin:
                 except Token.DoesNotExist:
                     pass
         if session_year:
+            model_name=queryset.model.__name__
+            # Special case models with optional session_year
+            if model_name in ["MillersEntrymodel"]:
+                return queryset.filter(Q(session_year=session_year) | Q(session_year__isnull=True))
+            # All other models → strict session filter
             return queryset.filter(session_year=session_year)
         return queryset.none()
 

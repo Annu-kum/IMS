@@ -103,7 +103,7 @@ class updatedealerviews(generics.UpdateAPIView,generics.ListAPIView):
 
 class BulkImportDealersView(APIView):
     parser_classes = [MultiPartParser, FormParser]
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
         file = request.FILES.get('file')

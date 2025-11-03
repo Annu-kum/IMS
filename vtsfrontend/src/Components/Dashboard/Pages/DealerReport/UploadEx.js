@@ -23,8 +23,12 @@ export default function UploadEx(props) {
   const[files,setFiles]=React.useState([])
   const[uploadFile,setuploadFile]=React.useState([])
   const FileInputref = React.useRef(null)
-  const sampleFileUrl = 'https://ims.digitaaz.com/images/DealersSample.xlsx';
-
+  const sampleFileUrl = 'http://127.0.0.1:8000/images/DealersSample.xlsx';
+  const token = localStorage.getItem('Token');  
+  const headers = {
+     'Content-Type': 'multipart/form-data',
+     'Authorization': `Token ${token}`,
+   };
  
     const downloadSampleFile = async (url) => {
         try {
@@ -91,9 +95,9 @@ export default function UploadEx(props) {
 
     try {
       const response = await axios.post(`${baseUrl}/dealer/bulkupload`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
+         headers:headers
+          // {
+        // }
       });
       toast.success(response.data.message,{
         theme:"light",
