@@ -94,7 +94,7 @@ class GetInstallviewset(SessionYearMixin,generics.ListAPIView):
 class GetInstallurlviewset(generics.ListAPIView):
     queryset = InstallatonModels.objects.all().order_by('id')
     serializer_class = InstallSerializers
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
     filter_backends = [filters.SearchFilter]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
     search_fields = ['id']
@@ -122,7 +122,7 @@ class GetInstallurlviewset(generics.ListAPIView):
 
 
 
-class postInstallviewset(generics.CreateAPIView):
+class postInstallviewset(SessionYearMixin,generics.CreateAPIView):
     queryset = InstallatonModels.objects.all()
     serializer_class = InstallpostSerializers
     permission_classes = [IsAuthenticated]
@@ -164,7 +164,7 @@ class DeleteInstallviewsets(generics.DestroyAPIView,SessionYearMixin):
 class updateInstallviewsets(SessionYearMixin,generics.UpdateAPIView):
     queryset = InstallatonModels.objects.all().order_by('MILLER_NAME')
     serializer_class = InstallupdatesSerializers
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser, JSONParser, FileUploadParser]
     filter_backends = [filters.SearchFilter]
     search_fields = ['MILLER_NAME']
@@ -193,7 +193,7 @@ class updateInstallviewsets(SessionYearMixin,generics.UpdateAPIView):
 class UpdateLetterHeadViewSets(SessionYearMixin,generics.UpdateAPIView):
     queryset = InstallatonModels.objects.all().order_by('MILLER_NAME')
     serializer_class = InstallSerializers
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser, JSONParser, FileUploadParser]
     lookup_field = 'id'
 
@@ -244,7 +244,7 @@ def get_file_url(request, id):
         return JsonResponse({'error': 'File not found'}, status=404)
 
 class BaseCountView(SessionYearMixin, generics.ListAPIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
     serializer_class = InstallSerializers  # DRF ke liye zaroori
     queryset = InstallatonModels.objects.all()  # Base queryset
 
@@ -255,7 +255,7 @@ class BaseCountView(SessionYearMixin, generics.ListAPIView):
 
 
 class InstallCountView(SessionYearMixin, generics.ListAPIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
     serializer_class = InstallSerializers
     queryset = InstallatonModels.objects.all()
 
@@ -335,7 +335,7 @@ class YesterdayRenewalInstallCountView(BaseCountView):
 class BulkImportView(generics.ListCreateAPIView):
     parser_classes = [MultiPartParser, FormParser]
     permission_classes = [IsAuthenticated]
-    def post(self, request):
+    def post(self, request,*args, **kwargs):
         # Get the uploaded files
         excel_file = request.FILES.get("file")
         letterhead_file = request.FILES.get("letterhead")
@@ -377,15 +377,24 @@ class BulkImportView(generics.ListCreateAPIView):
                 dealer_instance = Dealersmodel.objects.get(Dealer_Name=row["Dealer_Name"])
 # Create model instance
                 # Parse InstallationDate to YYYY-MM-DD format
-                installation_date_str = str(row["InstallationDate"]).strip().replace("“", "").replace("”", "")
-                try:
-                    installation_date = datetime.strptime(installation_date_str, "%d-%m-%Y").date()
-                except ValueError:
-                    try:
-                        installation_date = datetime.strptime(installation_date_str, "%Y-%m-%d").date()
-                    except ValueError:
-                        return Response({"error": f"Error processing row: InstallationDate '{installation_date_str}' is not in a recognized format (expected DD-MM-YYYY or YYYY-MM-DD)."}, status=400)
+ 
+                installation_date_raw = row["InstallationDate"]
 
+                try:
+                    # Convert automatically using pandas
+                    installation_date = pd.to_datetime(installation_date_raw, errors='raise').date()
+                except Exception:
+                    # Manual fallback for unexpected formats
+                    installation_date_str = str(installation_date_raw).strip().replace("“", "").replace("”", "")
+                    try:
+                        installation_date = datetime.strptime(installation_date_str, "%d-%m-%Y").date()
+                    except ValueError:
+                        try:
+                            installation_date = datetime.strptime(installation_date_str.split(" ")[0], "%Y-%m-%d").date()
+                        except ValueError:
+                            return Response({
+                                "error": f"Error processing row: InstallationDate '{installation_date_str}' is not in a recognized format (expected DD-MM-YYYY or YYYY-MM-DD)."
+                            }, status=400)
                 entry = InstallatonModels(
                     MILLER_TRANSPORTER_ID=row["MILLER_TRANSPORTER_ID"],
                     MILLER_NAME=row["MILLER_NAME"],
@@ -433,7 +442,7 @@ class BulkImportView(generics.ListCreateAPIView):
 #update excel views...
 class BulkUpdateLetterHeadView(APIView):
     parser_classes = [MultiPartParser, FormParser]
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
         file = request.FILES.get('letterhead')

@@ -34,7 +34,7 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const {auth} = useAuth();
-  const session = localStorage.getItem('sess')
+  const session = localStorage.getItem('session_year');
 
   const handleClick = () => {
     setOpen(!open);

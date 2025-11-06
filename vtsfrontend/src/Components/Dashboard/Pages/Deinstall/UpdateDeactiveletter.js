@@ -19,7 +19,8 @@ export default function UpdateDeactiveletter(props) {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const isNonMobile = useMediaQuery("(min-width:600px)");
-
+  const token = localStorage.getItem('Token');
+  
   
 
   
@@ -36,6 +37,7 @@ export default function UpdateDeactiveletter(props) {
       const response = await axios.patch(`${baseUrl}/deactivation/update-deactivation/${setids}/`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
+          'Authorization': `Token ${token}`,          
         },
         withCredentials: false
       });

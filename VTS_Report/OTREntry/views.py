@@ -81,7 +81,7 @@ class GetOtrviewset(SessionYearMixin,generics.ListAPIView):
 class GetOTRGPSIMEINOviewset(generics.ListAPIView):
     queryset = OTRData.objects.all().order_by('MILLER_TRANSPORTER_ID')
     serializer_class = OtrgetSerializers
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
     filter_backends = [filters.SearchFilter]
     search_fields = ['MILLER_NAME']
     lookup_field = 'id'
@@ -118,7 +118,7 @@ class postOtrviewset(generics.CreateAPIView):
 class DeleteOTRviewsets(generics.DestroyAPIView):
     queryset = OTRData.objects.all().order_by('id')
     serializer_class = OtrgetSerializers
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser,JSONParser ]
     filter_backends = [filters.SearchFilter]
     search_fields = ['MILLER_NAME', 'MILLER_TRANSPORTER_ID']
@@ -141,7 +141,7 @@ class DeleteOTRviewsets(generics.DestroyAPIView):
 class updateOTRviewsets(generics.UpdateAPIView):
     queryset = OTRData.objects.all().order_by('MILLER_NAME')
     serializer_class = otrdataserializes
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser, JSONParser,]
     filter_backends = [filters.SearchFilter]
     search_fields = ['MILLER_NAME']
@@ -168,7 +168,7 @@ class updateOTRviewsets(generics.UpdateAPIView):
 class GetGPSIMEINOviewset(generics.ListAPIView):
     queryset = InstallatonModels.objects.all().order_by('MILLER_TRANSPORTER_ID')
     serializer_class = InstallSerializers
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
     filter_backends = [filters.SearchFilter]
     search_fields = ['MILLER_NAME']
     lookup_field = 'GPS_IMEI_NO'

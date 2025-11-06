@@ -25,7 +25,7 @@ class Paginations(PageNumberPagination):
 
 
 class OtrDetailsviews(SessionYearMixin, generics.ListAPIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
     queryset = InstallatonModels.objects.all()  # Base queryset required
 
     def list(self, request, *args, **kwargs):
@@ -45,7 +45,7 @@ class OtrDetailsviews(SessionYearMixin, generics.ListAPIView):
 
 
 class NewOTRCountView(SessionYearMixin,generics.ListAPIView):
-    permission_classes=[AllowAny]
+    permission_classes=[IsAuthenticated]
     queryset = InstallatonModels.objects.all()  # Base queryset required
     def list(self, request, *args,**kwargs):
         # Count Renewal entries with OTR in InstallationModels
@@ -71,7 +71,7 @@ class NewOTRCountView(SessionYearMixin,generics.ListAPIView):
 
 
 class RenewalOTRCountView(SessionYearMixin,generics.ListAPIView):
-        permission_classes=[AllowAny]
+        permission_classes=[IsAuthenticated]
         queryset = InstallatonModels.objects.all()  # Base queryset required
         def list(self, request, *args,**kwargs):
             # Count Renewal entries with OTR in InstallationModels
@@ -97,7 +97,7 @@ class RenewalOTRCountView(SessionYearMixin,generics.ListAPIView):
 
 
 class TodayOTRCountView(SessionYearMixin,generics.ListAPIView):
-   permission_classes = [AllowAny]
+   permission_classes = [IsAuthenticated]
    queryset = InstallatonModels.objects.all()  # Base queryset required
 
    def list(self, request, *args, **kwargs):
@@ -113,7 +113,7 @@ class TodayOTRCountView(SessionYearMixin,generics.ListAPIView):
         return Response({'count':today_otr_count},status=status.HTTP_200_OK)
 
 class TodayNewOTRCountView(SessionYearMixin,generics.ListAPIView):
-   permission_classes = [AllowAny]
+   permission_classes = [IsAuthenticated]
    queryset = InstallatonModels.objects.all()  # Base queryset required
 
    def list(self, request, *args, **kwargs):
@@ -128,7 +128,7 @@ class TodayNewOTRCountView(SessionYearMixin,generics.ListAPIView):
         today_otr_count = installation_otr_count + deactivation_otr_count + reactivation_otr_count
         return Response({'count':today_otr_count},status=status.HTTP_200_OK)
 class TodayRenewalOTRCountView(SessionYearMixin,generics.ListAPIView):
-    permission_classes=[AllowAny]
+    permission_classes=[IsAuthenticated]
     queryset = InstallatonModels.objects.all()  # Base queryset required
     def list(self,request, *args, **kwargs):
         today = timezone.now().date()
@@ -144,7 +144,7 @@ class TodayRenewalOTRCountView(SessionYearMixin,generics.ListAPIView):
     
 
 class YesterdayOTRCountView(SessionYearMixin,generics.ListAPIView):
-    permission_classes=[AllowAny]
+    permission_classes=[IsAuthenticated]
     queryset = InstallatonModels.objects.all()  # Base queryset required
     def list(self,request, *args, **kwargs):
         current_date = date.today()
@@ -164,7 +164,7 @@ class YesterdayOTRCountView(SessionYearMixin,generics.ListAPIView):
 
 
 class YesterdayNewOTRCountView(SessionYearMixin,generics.ListAPIView):
-   permission_classes = [AllowAny]
+   permission_classes = [IsAuthenticated]
    queryset = InstallatonModels.objects.all()  # Base queryset required
 
    def list(self, request, *args, **kwargs):
@@ -182,7 +182,7 @@ class YesterdayNewOTRCountView(SessionYearMixin,generics.ListAPIView):
 
 
 class YesterdayRenewalOTRCountView(SessionYearMixin,generics.ListAPIView):
-    permission_classes=[AllowAny]
+    permission_classes=[IsAuthenticated]
     queryset = InstallatonModels.objects.all()  # Base queryset required
     def list(self,request, *args, **kwargs):
         today = timezone.now().date()

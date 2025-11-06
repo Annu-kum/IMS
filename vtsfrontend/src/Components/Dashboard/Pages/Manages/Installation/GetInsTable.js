@@ -233,7 +233,7 @@ const deletePopups = id =>{
   const handleDownload = (id) => async () => {
         try {
       // Fetch  data from  API
-      const response = await axios.get(`http://127.0.0.1:8000/installation/geturl/${id}`);
+      const response = await axios.get(`http://127.0.0.1:8000/installation/geturl/${id}`,{headers});
       const url = response.data.Installation_letterHead;
       setData(url);  // Set the URL to be used for download
       // Programmatically create and click a download link

@@ -46,7 +46,7 @@ const Topbar = ({ handleDrawerToggle }) => {
 
   const handleLogout = async (event) => {
     localStorage.removeItem('Token')
-    localStorage.removeItem('sess')
+    localStorage.removeItem('session_year')
     navigate('/');
   };
 

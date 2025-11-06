@@ -24,7 +24,7 @@ class Paginations(PageNumberPagination):
 
 
 class MasterReport(generics.ListCreateAPIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
     serializer_class = InstallSerializers
     pagination_class = Paginations
     filter_backends = [filters.SearchFilter]
