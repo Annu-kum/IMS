@@ -41,6 +41,7 @@ export default function LoginApp() {
   const { setAuth } = useAuth();
   const [sessionYear, setSessionYear] = useState('');
   const [sessionOptions, setSessionOptions] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const handleClickShowPassword = () => setShowPassword((show) => !show);
 
@@ -54,7 +55,7 @@ export default function LoginApp() {
       });
 
       localStorage.setItem("Token", response.data.Token);
-      localStorage.setItem("sess",response.data.session_year);
+      localStorage.setItem("session_year",response.data.session_year);
 
       const whoamiRes = await axios.get(`${baseUrl}/accounts/whoiam/`, {
         headers: {
@@ -73,19 +74,20 @@ export default function LoginApp() {
       } else {
         navigate("/install");
       }
-
       setTimeout(() => {
         localStorage.removeItem("Token");
-        localStorage.removeItem("sess")
+        localStorage.removeItem("session_year")
         setAuth({ isSuperuser: false });
         navigate("/");
-      }, 60 * 60 * 1000);
-      
+      }, 60 * 60 * 1000);     
     } catch (error) {
-      toast.error("Invalid credentials");
+      toast.error("Not Allowed for this session or Invalid credentials");
       setUsername("");
       setPassword("");
       setSessionYear("");
+    }
+    finally {
+      setLoading(false);
     }
   };
 

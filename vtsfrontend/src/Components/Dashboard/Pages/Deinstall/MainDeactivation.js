@@ -202,7 +202,7 @@ const deletePopups = id =>{
   const handleDownload = (id) => async () => {
      try {
       // Fetch  data from  API
-      const response = await axios.get(`http://127.0.0.1:8000/deactivation/getdeactiveurl/${id}`);
+      const response = await axios.get(`http://127.0.0.1:8000/deactivation/getdeactiveurl/${id}`,{headers});
       const url = response.data.Deactivation_letterHead;
       setData(url);  // Set the URL to be used for download
       console.log(url)

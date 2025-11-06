@@ -44,7 +44,7 @@ export default function BulkUpload(props) {
       
           // Get filename from content-disposition header
           const contentDisposition = response.headers.get('content-disposition');
-          let filename = 'InstallationSample.xls';  // Default filename
+          let filename = 'InstallationSample.xlsx';  // Default filename
           if (contentDisposition) {
             const matches = /filename="(.+)"/.exec(contentDisposition);
             if (matches != null && matches[1]) {

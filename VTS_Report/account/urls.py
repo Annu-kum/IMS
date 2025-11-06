@@ -11,5 +11,5 @@ urlpatterns = [
     path('changepswd/',views.ChangePasswordView.as_view(),name="change_password"),
     path('whoiam/',views.WhoAmI.as_view(),name="whoiam"),
     path('session-years/', views.SessionYearListView.as_view(), name="session-years"),    
-    
+    path('logout/', views.UserLogout.as_view(), name="user_logout"), 
 ]

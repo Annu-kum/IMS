@@ -93,7 +93,7 @@ class GetReactivateviewset(SessionYearMixin,generics.ListAPIView):
 class GetReactiveurlviewset(generics.ListAPIView):
     queryset = ReactivationModels.objects.all().order_by('id')
     serializer_class = ReactivateSerializers
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
     filter_backends = [filters.SearchFilter]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
     search_fields = ['id']
@@ -186,7 +186,7 @@ class updateReactivateviewsets(generics.UpdateAPIView):
 class UpdatereactivateLetterHeadViewSets(generics.UpdateAPIView):
     queryset = ReactivationModels.objects.all().order_by('MILLER_NAME')
     serializer_class = ReactivateSerializers
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser, JSONParser, FileUploadParser]
     lookup_field = 'id'
 
@@ -237,7 +237,7 @@ def get_file_url(request, id):
         return JsonResponse({'error': 'File not found'}, status=404)
 
 class BaseCountView(SessionYearMixin, generics.ListAPIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
     serializer_class = ReactivateSerializers  # Specify a serializer if needed 
     queryset = ReactivationModels.objects.all()  # Base queryset
 
@@ -384,14 +384,24 @@ class BulkImportView(generics.ListCreateAPIView):
             # Iterate through the DataFrame and create model instances
         for _, row in df.iterrows():
                try:
-                    reactivation_date_str = str(row["ReactivationDate"]).strip().replace("“", "").replace("”", "")
+ 
+                reactivation_date_raw = row["ReactivationDate"]
+
+                try:
+                    # Convert automatically using pandas
+                    reactivation_date = pd.to_datetime(reactivation_date_raw, errors='raise').date()
+                except Exception:
+                    # Manual fallback for unexpected formats
+                    reactivation_date_str = str(reactivation_date_raw).strip().replace("“", "").replace("”", "")
                     try:
                         reactivation_date = datetime.strptime(reactivation_date_str, "%d-%m-%Y").date()
                     except ValueError:
                         try:
-                            reactivation_date = datetime.strptime(reactivation_date_str, "%Y-%m-%d").date()
+                            reactivation_date = datetime.strptime(reactivation_date_str.split(" ")[0], "%Y-%m-%d").date()
                         except ValueError:
-                            return Response({"error": f"Error processing row: InstallationDate '{reactivation_date_str}' is not in a recognized format (expected DD-MM-YYYY or YYYY-MM-DD)."}, status=400)
+                            return Response({
+                                "error": f"Error processing row: InstallationDate '{reactivation_date_str}' is not in a recognized format (expected DD-MM-YYYY or YYYY-MM-DD)."
+                            }, status=400)
                     entry = ReactivationModels(
                         MILLER_TRANSPORTER_ID=row['MILLER_TRANSPORTER_ID'],
                         MILLER_NAME=row['MILLER_NAME'],

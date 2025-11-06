@@ -98,6 +98,12 @@ export default function OverallCarts() {
     const[Ocountyesterday,setOcountyesterday]=useState(0);
     const[OTRnewTesterday,setOTRnewyesterday]=useState(0);
     const[OTRRenewalyesterday,setOTRrenewalyesterday]=useState(0);
+    
+      const token = localStorage.getItem("Token");
+    const headers = {
+      "Content-Type": "application/json",
+      "Authorization": `Token ${token}`,
+    };
 
 
 
@@ -114,7 +120,7 @@ export default function OverallCarts() {
          
 // -------------------------------Installation-----------------------------
       
-        api.get(`/installation/total/count/`)
+        api.get(`/installation/total/count/`,{headers:headers})
           .then(response => {
             setCount(response.data.count);
           })
@@ -124,7 +130,7 @@ export default function OverallCarts() {
      
 
    
-        api.get(`/installation/total/new-count/`)
+        api.get(`/installation/total/new-count/`,{headers:headers})
           .then(response => {
             setInstallnew(response.data.count);
           })
@@ -133,7 +139,7 @@ export default function OverallCarts() {
           });
    
      
-        api.get(`/installation/total/renewal-count/`)
+        api.get(`/installation/total/renewal-count/`,{headers:headers})
           .then(response => {
             setInstallrenewal(response.data.count);
           })
@@ -142,7 +148,7 @@ export default function OverallCarts() {
           });
    
     
-        api.get(`/installation/date/today-count/`)
+        api.get(`/installation/date/today-count/`,{headers:headers})
           .then(response => {
             setTodayinstall(response.data.count);
           })
@@ -151,7 +157,7 @@ export default function OverallCarts() {
           });
     
     
-        api.get(`/installation/today-new-count/`)
+        api.get(`/installation/today-new-count/`,{headers:headers})
           .then(response => {
             setTodaynewinstall(response.data.count);
           })
@@ -160,7 +166,7 @@ export default function OverallCarts() {
           });
     
      
-        api.get(`/installation/today-renewal-count/`)
+        api.get(`/installation/today-renewal-count/`,{headers:headers})
           .then(response => {
             setTodayrenewalinstall(response.data.count);
           })
@@ -170,7 +176,7 @@ export default function OverallCarts() {
   
 
    
-        api.get(`/installation/yesterday-count/`)
+        api.get(`/installation/yesterday-count/`,{headers:headers})
           .then(response => {
             setYesterdayinstall(response.data.count);
           })
@@ -178,7 +184,7 @@ export default function OverallCarts() {
             console.error('There was an error fetching the count!', error);
           });
     
-        api.get(`/installation/yesterday-new-count/`)
+        api.get(`/installation/yesterday-new-count/`,{headers:headers})
           .then(response => {
             setYesterdaynewinstall(response.data.count);
           })
@@ -187,7 +193,7 @@ export default function OverallCarts() {
           });
       
 
-        api.get(`/installation/yesterday-renewal-count/`)
+        api.get(`/installation/yesterday-renewal-count/`,{headers:headers})
           .then(response => {
             setYesterdayrenewalinstall(response.data.count);
           })
@@ -197,63 +203,63 @@ export default function OverallCarts() {
      
 // ------------------------------------Deactivation-------------------------------
      
-        api.get(`/deactivation/total/count/`)
+        api.get(`/deactivation/total/count/`,{headers:headers})
         .then(response=>{
           setDcount(response.data.count);
         }).catch(error=>{
           console.error('There was an error fetching the count!', error);
         })
     
-        api.get(`/deactivation/total/new-count/`)
+        api.get(`/deactivation/total/new-count/`,{headers:headers})
         .then(response=>{
           setdeactivatenew(response.data.count)
         }).catch(error=>{
           console.error('There was an error fetching the count!', error);
         })
      
-        api.get(`/deactivation/total/renewal-count/`)
+        api.get(`/deactivation/total/renewal-count/`,{headers:headers})
         .then(response=>{
           setDeactivaterenewal(response.data.count)
         }).catch(error=>{
           console.error('There was an error fetching the count!', error);
         })
      
-        api.get(`/deactivation/date/today-count/`)
+        api.get(`/deactivation/date/today-count/`,{headers:headers})
         .then(response=>{
           setDtodaycount(response.data.count)
         }).catch(error=>{
           console.error('There was an error fetching the count!', error);
         })
       
-        api.get(`/deactivation/today-new-count/`)
+        api.get(`/deactivation/today-new-count/`,{headers:headers})
         .then(response=>{
           setdeactivatenewToday(response.data.count)
         }).catch(error=>{
           console.error('There was an error fetching the count!', error);
         })
      
-        api.get(`/deactivation/today-renewal-count/`)
+        api.get(`/deactivation/today-renewal-count/`,{headers:headers})
         .then(response=>{
           setDeactivaterenewalToday(response.data.count)
         }).catch(error=>{
           console.error('There was an error fetching the count!', error);
         })
      
-        api.get(`/deactivation/yesterday-count/`)
+        api.get(`/deactivation/yesterday-count/`,{headers:headers})
         .then(response=>{
           setDcountyesterday(response.data.count)
         }).catch(error=>{
           console.error('There was an error fetching the count!', error);
         })
       
-        api.get(`/deactivation/yesterday-new-count/`)
+        api.get(`/deactivation/yesterday-new-count/`,{headers:headers})
         .then(response=>{
           setdeactivatenewyesterday(response.data.count)
         }).catch(error=>{
           console.error('There was an error fetching the count!', error);
         })
      
-        api.get(`/deactivation/yesterday-renewal-count/`)
+        api.get(`/deactivation/yesterday-renewal-count/`,{headers:headers})
         .then(response=>{
           setDeactivaterenewalyesterday(response.data.count)
         }).catch(error=>{
@@ -262,63 +268,63 @@ export default function OverallCarts() {
       
 // -----------------------------------Reactivation---------------------------------
       
-        api.get(`/reactivation/total/count/`)
+        api.get(`/reactivation/total/count/`,{headers:headers})
         .then(response=>{
           setRcount(response.data.count)
         }).catch((error)=>{
                 console.log(error)
         })
      
-        api.get(`/reactivation/total/new-count/`)
+        api.get(`/reactivation/total/new-count/`,{headers:headers})
         .then(response=>{
           setreactivatenew(response.data.count)
         }).catch((error)=>{
                 console.log(error)
         })
      
-        api.get(`/reactivation/total/renewal-count/`)
+        api.get(`/reactivation/total/renewal-count/`,{headers:headers})
         .then(response=>{
           setReactivaterenewal(response.data.count)
         }).catch((error)=>{
                 console.log(error)
         })
       
-        api.get(`/reactivation/date/today-count/`)
+        api.get(`/reactivation/date/today-count/`,{headers:headers})
         .then(response=>{
           setRtodaycount(response.data.count)
         }).catch((error)=>{
                 console.log(error)
         })
      
-        api.get(`/reactivation/today-new-count/`)
+        api.get(`/reactivation/today-new-count/`,{headers:headers})
         .then(response=>{
           setreactivatenewToday(response.data.count)
         }).catch((error)=>{
                 console.log(error)
         })
      
-        api.get(`/reactivation/today-renewal-count/`)
+        api.get(`/reactivation/today-renewal-count/`,{headers:headers})
         .then(response=>{
           setReactivaterenewalToday(response.data.count)
         }).catch((error)=>{
                 console.log(error)
         })
       
-        api.get(`/reactivation/yesterday-count/`)
+        api.get(`/reactivation/yesterday-count/`,{headers:headers})
         .then(response=>{
           setRcountyesterday(response.data.count)
         }).catch((error)=>{
                 console.log(error)
         })
      
-        api.get(`/reactivation/yesterday-new-count/`)
+        api.get(`/reactivation/yesterday-new-count/`,{headers:headers})
         .then(response=>{
           setreactivatenewyesterday(response.data.count)
         }).catch((error)=>{
                 console.log(error)
         })
      
-        api.get(`/reactivation/yesterday-renewal-count/`)
+        api.get(`/reactivation/yesterday-renewal-count/`,{headers:headers})
         .then(response=>{
           setReactivaterenewalyesterday(response.data.count)
         }).catch((error)=>{
@@ -331,56 +337,56 @@ export default function OverallCarts() {
     
 
 
-  api.get(`/otrdetails/total-otr`)
+  api.get(`/otrdetails/total-otr`, {headers:headers})
   .then(response=>{
     setOcount(response.data.count)
   }).catch((error)=>{
           console.log(error)
   })
 
-  api.get(`/otrdetails/total-new-otr/`)
+  api.get(`/otrdetails/total-new-otr/`,{headers:headers})
   .then(response=>{
     setOTRnew(response.data.count)
   }).catch((error)=>{
           console.log(error)
   })
 
-  api.get(`/otrdetails/total-renewal-otr/`)
+  api.get(`/otrdetails/total-renewal-otr/`,{headers:headers})
   .then(response=>{
     setOTRrenewal(response.data.count)
   }).catch((error)=>{
           console.log(error)
   })
 
-  api.get(`/otrdetails/today-otr/`)
+  api.get(`/otrdetails/today-otr/`,{headers:headers})
   .then(response=>{
     setOtodaycount(response.data.count)
   }).catch((error)=>{
           console.log(error)
   })
 
-  api.get(`/otrdetails/today-new-otr/`)
+  api.get(`/otrdetails/today-new-otr/`,{headers:headers})
   .then(response=>{
     setOTRnewToday(response.data.count)
   }).catch((error)=>{
           console.log(error)
   })
 
-  api.get(`/otrdetails/today-renewal-otr/`)
+  api.get(`/otrdetails/today-renewal-otr/`,{headers:headers}  )
   .then(response=>{
     setOTRrenewalToday(response.data.count)
   }).catch((error)=>{
           console.log(error)
   })
 
-  api.get(`/otrdetails/yesterday-otr/`)
+  api.get(`/otrdetails/yesterday-otr/`,{headers:headers} )
   .then(response=>{
     setOcountyesterday(response.data.count)
   }).catch((error)=>{
           console.log(error)
   })
 
-  api.get(`/otrdetails/yesterday-new-otr/`)
+  api.get(`/otrdetails/yesterday-new-otr/`,{headers:headers} )
   .then(response=>{
     setOTRnewyesterday(response.data.count)
   }).catch((error)=>{
@@ -389,7 +395,7 @@ export default function OverallCarts() {
 
 
 
-     api.get(`/otrdetails/yesterday-renewal-otr/`)
+     api.get(`/otrdetails/yesterday-renewal-otr/`,{headers:headers} )
      .then(response=>{
       setOTRrenewalyesterday(response.data.count)
     }).catch((error)=>{

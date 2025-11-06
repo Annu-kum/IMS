@@ -29,7 +29,7 @@ class Paginations(PageNumberPagination):
 class GetDeactiveviewset(SessionYearMixin,generics.ListAPIView):
     queryset = DeactivationModels.objects.all().order_by('MILLER_NAME')
     serializer_class = DeactivateSerializers
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
     filter_backends = [filters.SearchFilter]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
     search_fields = ['MILLER_TRANSPORTER_ID','MILLER_NAME','Device_Name','GPS_IMEI_NO','Entity_id',
@@ -91,7 +91,7 @@ class GetDeactiveviewset(SessionYearMixin,generics.ListAPIView):
 class Getdeactivurlviewset(generics.ListAPIView):
     queryset = DeactivationModels.objects.all().order_by('id')
     serializer_class = DeactivateSerializers
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
     filter_backends = [filters.SearchFilter]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
     search_fields = ['id']
@@ -119,7 +119,7 @@ class Getdeactivurlviewset(generics.ListAPIView):
 
 
 
-class postDeactivateviewset(generics.CreateAPIView):
+class postDeactivateviewset(SessionYearMixin,generics.CreateAPIView):
     queryset = DeactivationModels.objects.all()
     serializer_class = DeactivatepostSerializers
     permission_classes = [IsAuthenticated]
@@ -135,7 +135,7 @@ class postDeactivateviewset(generics.CreateAPIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class DeleteDeactivateviewsets(generics.DestroyAPIView):
+class DeleteDeactivateviewsets(SessionYearMixin,generics.DestroyAPIView):
     queryset = DeactivationModels.objects.all().order_by('id')
     serializer_class = DeactivateSerializers
     permission_classes = [IsAuthenticated]
@@ -158,10 +158,10 @@ class DeleteDeactivateviewsets(generics.DestroyAPIView):
                 return Response({'error': 'Record does not exist'}, status=status.HTTP_404_NOT_FOUND)
         return Response({'error': 'ID parameter is required'}, status=status.HTTP_400_BAD_REQUEST)
 
-class updateDeactivateviewsets(generics.UpdateAPIView):
+class updateDeactivateviewsets(SessionYearMixin,generics.UpdateAPIView):
     queryset = DeactivationModels.objects.all().order_by('MILLER_NAME')
     serializer_class = DeactivateUpdatesSerializers
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser,JSONParser,FileUploadParser]
     filter_backends = [filters.SearchFilter]
     search_fields = ['MILLER_NAME']
@@ -189,7 +189,7 @@ class updateDeactivateviewsets(generics.UpdateAPIView):
 class UpdatedeactivateLetterHeadViewSets(SessionYearMixin,generics.UpdateAPIView):
     queryset = DeactivationModels.objects.all().order_by('MILLER_NAME')
     serializer_class = DeactivateSerializers
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser, JSONParser, FileUploadParser]
     lookup_field = 'id'
 
@@ -238,7 +238,7 @@ def get_file_url(request, id):
     else:
         return JsonResponse({'error': 'File not found'}, status=404)
 class BaseCountView(SessionYearMixin, generics.ListAPIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
     serializer_class = DeactivateSerializers  # DRF ke liye zaroori
     queryset = DeactivationModels.objects.all()  # Base queryset
 

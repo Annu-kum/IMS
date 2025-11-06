@@ -24,7 +24,7 @@ class Paginations(PageNumberPagination):
 class Getdealersviewset(SessionYearMixin, generics.ListAPIView):
     queryset = Dealersmodel.objects.all().order_by('id')
     serializer_class = DealerSerializers
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
     filter_backends = [filters.SearchFilter]
     search_fields = ['Dealer_Name']
     pagination_class = Paginations
@@ -51,7 +51,7 @@ class Getdealersviewset(SessionYearMixin, generics.ListAPIView):
 class GetDealerViewset(SessionYearMixin,generics.ListAPIView):
     queryset=Dealersmodel.objects.all().order_by('Dealer_Name')
     serializer_class=DealerSerializers
-    permission_classes=[AllowAny]
+    permission_classes=[IsAuthenticated]
     filter_backends=[filters.SearchFilter]
     search_fields=['Dealer_Name']
     pagination_class=Paginations
@@ -59,7 +59,7 @@ class GetDealerViewset(SessionYearMixin,generics.ListAPIView):
 class PostDealer(generics.CreateAPIView):
     queryset=Dealersmodel.objects.all().order_by('Dealer_Name')
     serializer_class=DealerSerializers
-    permission_classes=[AllowAny]
+    permission_classes=[IsAuthenticated]
     filter_backends=[filters.SearchFilter]
     search_field=['Dealer_Name']
 
@@ -70,7 +70,7 @@ class PostDealer(generics.CreateAPIView):
 class deleteDealer(generics.DestroyAPIView,generics.ListAPIView):
     queryset=Dealersmodel.objects.all().order_by('Dealer_Name')
     serializer_class=DealerSerializers
-    permission_classes=[AllowAny]
+    permission_classes=[IsAuthenticated]
     filter_backends=[filters.SearchFilter]
     search_field=['Dealer_Name']
 
@@ -91,7 +91,7 @@ class updatedealerviews(generics.UpdateAPIView,generics.ListAPIView):
     #Get and update the contact...
     queryset = Dealersmodel.objects.all().order_by('Dealer_Name')
     serializer_class = DealerSerializers
-    permission_classes=[AllowAny]
+    permission_classes=[IsAuthenticated]
     filter_backends = [filters.SearchFilter] #for search Through Name 
     search_fields = ['Dealer_Name']
     lookup_field = 'id'  # Specify the field to use for lookup

@@ -12,23 +12,37 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class SessionYearSerializer(serializers.ModelSerializer):
-    """Base serializer that auto-handles session_year field"""
+    """
+    Base serializer that automatically injects session_year 
+    (based on user’s active session) during create().
+    """
 
     class Meta:
-        fields = '__all__'
+        fields = "__all__"
         extra_kwargs = {
-            "session_year": {"write_only": True}  #hide from frontend
+            "session_year": {"write_only": True}  # hide from frontend
         }
 
     def create(self, validated_data):
         request = self.context.get("request")
+
+        #  Defensive check
+        if not request:
+            raise serializers.ValidationError("Request context missing in serializer.")
+
+        #  Pass user and request (for token-based session detection)
         session_year = get_user_session_year(request.user)
+        if not session_year:
+            raise serializers.ValidationError("Session year not found for this user.")
+
         validated_data["session_year"] = session_year
         return super().create(validated_data)
 
     def update(self, instance, validated_data):
-        validated_data.pop("session_year", None)  # prevent overriding
+        #  Never allow manual override of session_year
+        validated_data.pop("session_year", None)
         return super().update(instance, validated_data)
+
 
 
 class SessionYearListSerializer(serializers.ModelSerializer):

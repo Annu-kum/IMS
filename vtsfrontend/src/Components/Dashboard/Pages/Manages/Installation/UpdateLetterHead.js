@@ -37,7 +37,7 @@ export default function Update_letterHeads(props) {
       const response = await axios.patch(`${baseUrl}/installation/update-installation/${setids}/`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
-        
+          'Authorization': `Token ${token}`,
         },
         withCredentials: false
       });

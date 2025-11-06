@@ -25,6 +25,8 @@ from rest_framework.views import APIView
 from django.contrib.auth.hashers import check_password
 from django.utils.decorators import method_decorator
 from .models import UserSessionYear
+from datetime import datetime, timedelta
+from django.utils import timezone
 class UserLogin(APIView):
     permission_classes = [AllowAny]
 
@@ -44,14 +46,20 @@ class UserLogin(APIView):
 
         if not user.is_active:
             return Response({'status': 'User Verification is Pending'}, status=HTTP_400_BAD_REQUEST)
+        
+                # ✅ Check if user is assigned to a specific session
+        if user.session_year:
+            if user.session_year.year != session_year:
+                return Response({
+                    "status": "session_mismatch",
+                    "message": f"This user is only allowed for session {user.session_year.year}.",
+                }, status=HTTP_400_BAD_REQUEST)
+
 
         user = authenticate(username=username, password=password)
         if not user:
             return Response({'status': "Invalid Credentials"}, status=HTTP_404_NOT_FOUND)
-
-        #  Generate or get token
         token, _ = Token.objects.get_or_create(user=user)
-
         #  Save session_year mapping
         if session_year:
             UserSessionYear.objects.update_or_create(
@@ -199,3 +207,17 @@ class SessionYearListView(APIView):
         session_years = SessionYear.objects.filter(is_active=True).order_by('year')
         serializer = SessionYearListSerializer(session_years, many=True)
         return Response(serializer.data)
+
+
+# Logout view
+class UserLogout(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        try:
+            # Delete token for current user
+            Token.objects.filter(key=request.auth.key).delete()
+            return Response({"message": "Successfully logged out"}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+

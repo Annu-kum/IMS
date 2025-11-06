@@ -41,7 +41,7 @@ const navigate= useNavigate()
 
   const handleUpdateClick = (event) => {
     event.preventDefault();
-    axios.delete(`${baseUrl}/otrentries/deletebyid/${setdeleteId}`)
+    axios.delete(`${baseUrl}/otrentries/deletebyid/${setdeleteId}`,{headers:headers})
     .then((res)=>{
         toast.success("Row deleted successfully")
         handleClose()

@@ -45,7 +45,13 @@ class User(AbstractBaseUser, PermissionsMixin):
     # districtId = models.ForeignKey(DistrictModel, on_delete=models.CASCADE, blank=True, null=True)
     createdBy = models.ForeignKey(settings.AUTH_USER_MODEL,related_name='created', on_delete=models.CASCADE,null=True, blank=True)
     objects = UserManager()
-
+    session_year = models.ForeignKey(
+        'account.SessionYear',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='users'
+    )
     USERNAME_FIELD = 'username'
     class Meta:
         ordering = ['username']

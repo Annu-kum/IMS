@@ -58,7 +58,7 @@ export default function UpdateOtr(props) {
 
   React.useEffect(()=>{
     if (setRecordForEdit) {
-      axios.get(`${baseUrl}/otrentries/getbygpsno/${setRecordForEdit}`)
+      axios.get(`${baseUrl}/otrentries/getbygpsno/${setRecordForEdit}`,{headers:headers})
         .then((res) => {
           setValues(res.data); 
         })
@@ -105,7 +105,7 @@ const navigate= useNavigate()
 
   const handleUpdateClick = (event) => {
     event.preventDefault();
-    axios.put(`${baseUrl}/otrentries/updatebyid/${setRecordForEdit}`,values)
+    axios.put(`${baseUrl}/otrentries/updatebyid/${setRecordForEdit}`,values,headers)
     .then((res)=>{
         toast.success("Row updated successfully")
         handleClose()
