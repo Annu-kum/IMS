@@ -5,16 +5,12 @@ import Paper from '@mui/material/Paper';
 import Grid from '@mui/material/Unstable_Grid2';
 // import Grid from '@mui/material/Grid';
 import {  Typography } from '@mui/material';
-import axios from 'axios';
 import DehazeIcon from '@mui/icons-material/Dehaze';
 import api from '../../account/BaseApi';
-
-
-
 import {useMediaQuery} from '@mui/material';
 
 
-const baseUrl = 'http://127.0.0.1:8000/'
+
 
 
 const DashboardCard = ({ title, total, newCount, renewal }) => (
@@ -99,7 +95,7 @@ export default function OverallCarts() {
     const[OTRnewTesterday,setOTRnewyesterday]=useState(0);
     const[OTRRenewalyesterday,setOTRrenewalyesterday]=useState(0);
     
-      const token = localStorage.getItem("Token");
+    const token = localStorage.getItem("Token");
     const headers = {
       "Content-Type": "application/json",
       "Authorization": `Token ${token}`,
@@ -333,10 +329,8 @@ export default function OverallCarts() {
      
      
 
-// ----------------------------------OTR----------------------------
+//----------------------------------OTR----------------------------
     
-
-
   api.get(`/otrdetails/total-otr`, {headers:headers})
   .then(response=>{
     setOcount(response.data.count)

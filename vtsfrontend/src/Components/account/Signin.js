@@ -8,7 +8,6 @@ import Grid from '@mui/material/Grid';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
@@ -17,8 +16,9 @@ import OutlinedInput from '@mui/material/OutlinedInput';
 import { InputLabel, InputAdornment, FormControl, MenuItem, Select, Paper } from '@mui/material';
 import { toast } from 'react-toastify';
 import { useAuth } from './AuthContext';
+import api from "./BaseApi";
 
-const baseUrl = 'http://127.0.0.1:8000';
+
 const defaultTheme = createTheme({
   palette: {
     primary: {
@@ -48,7 +48,7 @@ export default function LoginApp() {
   const handleSubmit = async (event) => {
     event.preventDefault();
     try {
-      const response = await axios.post(`${baseUrl}/accounts/userlogin/`, {
+      const response = await api.post(`/accounts/userlogin/`, {
         username,
         password,
         session_year: sessionYear,
@@ -57,7 +57,7 @@ export default function LoginApp() {
       localStorage.setItem("Token", response.data.Token);
       localStorage.setItem("session_year",response.data.session_year);
 
-      const whoamiRes = await axios.get(`${baseUrl}/accounts/whoiam/`, {
+      const whoamiRes = await api.get(`/accounts/whoiam/`, {
         headers: {
           Authorization: `Token ${localStorage.getItem('Token')}`,
         },
@@ -92,7 +92,7 @@ export default function LoginApp() {
   };
 
   useEffect(() => {
-    axios.get(`${baseUrl}/accounts/session-years/`)
+    api.get(`/accounts/session-years/`)
       .then((res) => {
         if (res.data.length > 0) {
           setSessionOptions(res.data);

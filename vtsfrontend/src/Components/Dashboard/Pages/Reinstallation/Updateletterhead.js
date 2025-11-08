@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Box, useMediaQuery } from '@mui/material';
-import axios from 'axios';
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import api from '../../../account/BaseApi';
 
-const baseUrl = 'http://127.0.0.1:8000';
 
 const getFileNameFromUrl = (url) => {
   return url.split('/').pop();
@@ -32,7 +31,7 @@ export default function UpdateletterHead(props) {
     formData.append('Reactivation_letterHead', letterHeadFile);
 
     try {
-      const response = await axios.patch(`${baseUrl}/reactivation/update-reactivation/${setids}/`, formData, {
+      const response = await api.patch(`/reactivation/update-reactivation/${setids}/`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },

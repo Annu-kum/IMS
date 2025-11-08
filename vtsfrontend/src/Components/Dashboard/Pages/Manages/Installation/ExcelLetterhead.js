@@ -1,14 +1,11 @@
-//upload excel letterhead
 import React, { useState } from 'react';
 import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, TextField, Box, useMediaQuery } from '@mui/material';
-import UploadFileOutlinedIcon from '@mui/icons-material/UploadFileOutlined';
-import axios from 'axios';
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import api from '../../../../account/BaseApi';
 
 
 
-const baseUrl= 'http://127.0.0.1:8000'
 export default function ExcelLetterhead(props) {
     const{excelDialog,setExceldialog}=props
   const [millerTransporterId, setMillerTransporterId] = useState('');
@@ -31,7 +28,7 @@ export default function ExcelLetterhead(props) {
     const formData = new FormData();
     formData.append('letterhead', letterHeadFile);
     try {
-      const response = await axios.post(`${baseUrl}/installation/updateexcelLetterhead/`, formData, {
+      const response = await api.post(`/installation/updateexcelLetterhead/`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data', 
         },

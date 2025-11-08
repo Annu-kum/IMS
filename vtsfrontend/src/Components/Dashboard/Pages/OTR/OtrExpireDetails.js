@@ -8,7 +8,6 @@ import 'jspdf-autotable';
 import Search from '../Manages/Installation/Search';
 import '../Manages/Installation/install.css';
 import Header from '../../Header';
-import axios from 'axios';
 import "react-toastify/dist/ReactToastify.css";
 import RefreshIcon from '@mui/icons-material/Refresh'
 import {CircularProgress} from '@mui/material';
@@ -16,8 +15,8 @@ import { useAuth } from '../../../account/AuthContext';
 // import { addMonths,format,parse,isAfter,isSameDay,isBefore } from 'date-fns';
 import {CSVLink} from 'react-csv';
 import { parse, addMonths, addDays, format, isAfter, isBefore, isSameDay } from 'date-fns';
+import api from '../../../account/BaseApi';
 
-const baseUrl="http://127.0.0.1:8000"
 
 export default function OtrExpireDetails() {
   const [rows, setRows] = useState([]);
@@ -41,9 +40,9 @@ const fetchData = async () => {
   try {
     // Fetch installation, OTR, and reactivation data in parallel
     const [installRes, otrRes, reactRes] = await Promise.all([
-      axios.get(`${baseUrl}/otrentries/getOTRinstall`, { headers }),
-      axios.get(`${baseUrl}/otrentries/getallotr`, { headers }),
-      axios.get(`${baseUrl}/otrentries/getOTRreactivate`, { headers }),
+      api.get(`/otrentries/getOTRinstall`, { headers }),
+      api.get(`/otrentries/getallotr`, { headers }),
+      api.get(`/otrentries/getOTRreactivate`, { headers }),
     ]);
 
     const installData = installRes.data || [];

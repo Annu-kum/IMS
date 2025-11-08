@@ -8,18 +8,16 @@ import {
   GridToolbarContainer,
   GridToolbarFilterButton,
 } from '@mui/x-data-grid';
-import jspdf from 'jspdf';
 import 'jspdf-autotable';
 import Search from '../Manages/Installation/Search';
 import '../Manages/Installation/install.css'
 import {Typography,TableCell,TableRow,TableContainer,Table,TableHead,TableSortLabel,TableBody,TablePagination} from '@mui/material';
-import axios from 'axios';
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import RefreshIcon from '@mui/icons-material/Refresh';
 import {CircularProgress} from '@mui/material';
 import { useAuth } from '../../../account/AuthContext';
-
+import api from '../../../account/BaseApi';
 
 
 export default function   ReactivationReport() {
@@ -109,7 +107,7 @@ const adminMaincolumn = [
       const formattedStartDate = start ? formatDate(start) : undefined;
       const formattedEndDate = end ? formatDate(end) : undefined;
   
-      const response = await axios.get(`http://127.0.0.1:8000/reactivation/getReactivatedetai/`, {
+      const response = await api.get(`/reactivation/getReactivatedetai/`, {
         params: {
           start_date: formattedStartDate,
           end_date: formattedEndDate,
@@ -213,7 +211,7 @@ const [csvdatas,setCSVdata]=React.useState([])
       const formattedStartDate = startDate ? formatDate(startDate) : undefined;
       const formattedEndDate = endDate ? formatDate(endDate) : undefined;
   
-      const response = await axios.get(`http://127.0.0.1:8000/reactivation/getReactivatedetai/`, {
+      const response = await api.get(`/reactivation/getReactivatedetai/`, {
         params: {
           start_date: formattedStartDate,
           end_date: formattedEndDate,

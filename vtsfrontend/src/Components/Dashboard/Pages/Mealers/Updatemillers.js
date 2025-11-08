@@ -6,13 +6,12 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import { TextField,Box,Paper, } from '@mui/material';
 import useMediaQuery from '@mui/material/useMediaQuery';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import api from '../../../account/BaseApi';
 
 
-const baseUrl='http://127.0.0.1:8000'
 export default function Updatemillers(props) {
   const [open, setOpen] = React.useState(false);
   const { setRecordForEdit, openPopup, setOpenPopup ,refreshData} = props;
@@ -33,7 +32,7 @@ export default function Updatemillers(props) {
 
   React.useEffect(()=>{
     if (setRecordForEdit) {
-      axios.get(`${baseUrl}/millers/getmillers/${setRecordForEdit}/`,{headers})
+      api.get(`/millers/getmillers/${setRecordForEdit}/`,{headers})
         .then((res) => {
           setValues(res.data);
         })
@@ -55,7 +54,7 @@ const navigate= useNavigate()
 
   const handleUpdateClick = (event) => {
     event.preventDefault();
-    axios.patch(`${baseUrl}/millers/updatemillers/${setRecordForEdit}/`,values,{headers})
+    api.patch(`/millers/updatemillers/${setRecordForEdit}/`,values,{headers})
     .then((res)=>{
         toast.success("Row updated successfully")
         handleClose()

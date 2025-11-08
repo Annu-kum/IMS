@@ -34,7 +34,7 @@ class SessionYearMixin:
 
         if session_year:
             model_name = queryset.model.__name__
-            if model_name in ["MillersEntrymodel"]:
+            if model_name in ["MillersEntrymodel","Dealersmodel"]:
                 return queryset.filter(Q(session_year=session_year) | Q(session_year__isnull=True))
             return queryset.filter(session_year=session_year)
 

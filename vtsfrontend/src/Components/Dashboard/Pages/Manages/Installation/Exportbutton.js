@@ -4,18 +4,12 @@ import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 import { styled } from '@mui/material/styles';
 import Dialog from '@mui/material/Dialog';
-import Divider from '@mui/material/Divider';
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
-import CloseIcon from '@mui/icons-material/Close';
 import Slide from '@mui/material/Slide';
 import InputTable from './Tables';
-// import InputTable from './Demofile';
-import Dialogs from './DialogBox';
-import { colors } from '@mui/material';
-import InstallDesktopIcon from '@mui/icons-material/InstallDesktop';
 import Grid from '@mui/material/Unstable_Grid2';
 import AddIcon from '@mui/icons-material/Add';
 // Define custom styles for the buttons

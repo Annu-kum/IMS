@@ -5,16 +5,13 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
-import Paper from '@mui/material/Paper';
-import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import UploadFileOutlinedIcon from '@mui/icons-material/UploadFileOutlined';
-import axios from 'axios';
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Box } from '@mui/material';
+import api from '../../../account/BaseApi';
+import { FRONTEND_BASE_URL } from '../../../BaseConfig/BaseUrls';
 
-
-const baseUrl= 'http://127.0.0.1:8000'
 
 export default function BulkUpload(props) {
   const [open, setOpen] = React.useState(false);
@@ -24,7 +21,7 @@ export default function BulkUpload(props) {
   const[letterHead,setletterHead]=React.useState([])
   const[uploadFile,setuploadFile]=React.useState([])
   const FileInputref = React.useRef(null)
-  const sampleFileUrl = 'http://127.0.0.1:3000/images/DeactivationSample.xlsx';
+  const sampleFileUrl = `${FRONTEND_BASE_URL}/images/DeactivationSample.xlsx`;
   const token = localStorage.getItem('Token');  
   const headers = {
      'Content-Type': 'multipart/form-data',
@@ -99,7 +96,7 @@ export default function BulkUpload(props) {
     formData.append('file', uploadFile);
     formData.append('letterhead',letterHead);
     try {
-      const response = await axios.post(`${baseUrl}/deactivation/import`, formData, {
+      const response = await api.post(`/deactivation/import`, formData, {
         headers: headers,
       });
       toast.success(response.data.message,{

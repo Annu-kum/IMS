@@ -8,10 +8,8 @@ import { useNavigate } from 'react-router-dom';
 import colorConfigs from "./config/colorconfig";
 import sizeConfigs from "./config/sizeconfig";
 import ChangePassword from '../account/ChangePassword';
-import axios from 'axios';
+import api from '../account/BaseApi';
 
-
-const baseUrl='http://127.0.0.1:8000'
 
 const Topbar = ({ handleDrawerToggle }) => {
   const [auth, setAuth] = useState(true);
@@ -30,7 +28,7 @@ const Topbar = ({ handleDrawerToggle }) => {
 
 
   useEffect(()=>{
-       axios.get(`${baseUrl}/manage_users/all/`,{headers})
+       api.get(`/manage_users/all/`,{headers})
        .then((res)=>{
           setUserData(res.data)
        })
@@ -134,3 +132,4 @@ const Topbar = ({ handleDrawerToggle }) => {
 };
 
 export default Topbar;
+  

@@ -5,25 +5,20 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
-import Paper from '@mui/material/Paper';
-import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import UploadFileOutlinedIcon from '@mui/icons-material/UploadFileOutlined';
-import axios from 'axios';
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Box } from '@mui/material';
-
-
-const baseUrl= 'http://127.0.0.1:8000'
+import api from '../../../account/BaseApi';
+import { FRONTEND_BASE_URL } from '../../../BaseConfig/BaseUrls';
 
 export default function UploadEx(props) {
   const [open, setOpen] = React.useState(false);
   const[maxWeight,setMaxwidth]=React.useState('lg')
   const{openDialog,setOpenDialog}=props
-  const[files,setFiles]=React.useState([])
   const[uploadFile,setuploadFile]=React.useState([])
   const FileInputref = React.useRef(null)
-  const sampleFileUrl = 'http://127.0.0.1:8000/images/DealersSample.xlsx';
+  const sampleFileUrl = `${FRONTEND_BASE_URL}/images/DealersSample.xlsx`;
   const token = localStorage.getItem('Token');  
   const headers = {
      'Content-Type': 'multipart/form-data',
@@ -67,9 +62,7 @@ export default function UploadEx(props) {
   
   
   
-  const handleClickOpen = () => {
-    setOpen(true);
-  };
+
 
   const handleClose = () => {
     setOpenDialog(false);
@@ -94,7 +87,7 @@ export default function UploadEx(props) {
     formData.append('file', uploadFile);
 
     try {
-      const response = await axios.post(`${baseUrl}/dealer/bulkupload`, formData, {
+      const response = await api.post(`/dealer/bulkupload`, formData, {
          headers:headers
           // {
         // }

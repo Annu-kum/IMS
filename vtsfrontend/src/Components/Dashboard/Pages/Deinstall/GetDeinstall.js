@@ -1,28 +1,14 @@
 import React, { useState,useEffect } from 'react';
-import axios from 'axios';
 import { useForm, Controller } from 'react-hook-form';
 import { TextField, FormControl,Select,Table,AlertTitle, TableBody, TableCell, TableContainer,Alert, TableHead, TableRow, Paper, Checkbox, Button } from '@mui/material';
-
-
-import TablePagination from '@mui/material/TablePagination';
-
 import { IconButton, MenuItem, Typography, Hidden } from '@mui/material';
-import AddIcon from '@mui/icons-material/Add';
-import { v4 as uuid } from 'uuid';
-import NewExport from './NewExport';
-import Grid from '@mui/material/Unstable_Grid2/Grid2';
 import { Box } from '@mui/material';
-// import Dateview from './DateView';
-import { DataGrid, gridColumnVisibilityModelSelector, } from '@mui/x-data-grid';
-import Dateview from '../Manages/Installation/DateView';
 import  '../Manages/Installation/install.css';
 import Header from '../../Header';
-import { useTheme } from '@mui/material';
 import useMediaQuery from '@mui/material/useMediaQuery';
-
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import DeleteIcon from '@mui/icons-material/Delete';
+import api from '../../../account/BaseApi';
 const columns = [
   { id: '', label: 'Action'},
   {id:'vehicle1',label: 'Vehicle No 1',minWidth: 120,align: 'right', format: (value) => value.toFixed(2), },
@@ -111,7 +97,6 @@ const InputTable = () => {
     'Accept': 'application/json',
   };
   const isNonMobile = useMediaQuery("(min-width:600px)");
-  const[loadDealers,setLoadealers]=useState([])
   const [deactivationDate, setDeactivationDate] = useState(""); // new date field
   const [extraFiles, setextraFiles] = useState([]); // <-- add this line
 
@@ -129,15 +114,15 @@ const InputTable = () => {
   
       // Fetch installation or reactivation data
       if (selectedOption === "installation") {
-        installResponse = await axios.get(
-          `http://127.0.0.1:8000/installation/getinstaller/${millerId}/`,
+        installResponse = api.get(
+          `/installation/getinstaller/${millerId}/`,
           { headers }
         );
   
         // Try deactivation fetch separately
         try {
-          deactivateResponse = await axios.get(
-            `http://127.0.0.1:8000/deactivation/getdeactivate/${millerId}/`,
+          deactivateResponse = await api.get(
+            `/deactivation/getdeactivate/${millerId}/`,
             { headers }
           );
         } catch (deactError) {
@@ -150,15 +135,15 @@ const InputTable = () => {
         }
   
       } else if (selectedOption === "reactivation") {
-        installResponse = await axios.get(
-          `http://127.0.0.1:8000/reactivation/getReactivate/${millerId}/`,
+        installResponse = await api.get(
+          `/reactivation/getReactivate/${millerId}/`,
           { headers }
         );
 
          // Try deactivation fetch separately
          try {
-          deactivateResponse = await axios.get(
-            `http://127.0.0.1:8000/deactivation/getdeactivate/${millerId}/`,
+          deactivateResponse = await api.get(
+            `/deactivation/getdeactivate/${millerId}/`,
             { headers }
           );
         } catch (deactError) {
@@ -268,8 +253,8 @@ selectedData.forEach((row) => {
 
   formData.append("MILLER_TRANSPORTER_ID", millerId);
 
-  axios
-    .post(`http://127.0.0.1:8000/deactivation/postdeactivate/`, formData, {
+  api
+    .post(`/deactivation/postdeactivate/`, formData, {
       headers: {
         "Content-Type": "multipart/form-data",
         Authorization: `Token ${token}`,
@@ -282,11 +267,10 @@ selectedData.forEach((row) => {
       })
     )
     .catch((err) =>     
-      // toast.error("Check date or letterhead field", {
-      //   theme: "light",
-      //   position: "top-center",
-      // })
-      console.log(err),
+      toast.error("Check date or letterhead field", {
+        theme: "light",
+        position: "top-center",
+      })
     );
 });
           };

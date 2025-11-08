@@ -5,16 +5,15 @@ import { Box ,Menu} from '@mui/material';
 import { addMonths,format,parse,parseISO } from 'date-fns';
 import { useTheme } from '@mui/material';
 import useMediaQuery from '@mui/material/useMediaQuery';
-import axios from 'axios';
 import {InputAdornment} from '@mui/material';
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import RefreshIcon from '@mui/icons-material/Refresh';
+import api from '../../../account/BaseApi';
 
 
 
 
-const baseUrl='http://127.0.0.1:8000'
 
 
 
@@ -86,7 +85,7 @@ export default function DataEntry() {
 
   useEffect(() => {
     if (gpsimeino) {
-      axios.get(`${baseUrl}/otrentries/getdetailsbyimei/${gpsimeino}`,{
+      api.get(`/otrentries/getdetailsbyimei/${gpsimeino}`,{
         headers:headers
       })
         .then((res) => {
@@ -140,7 +139,7 @@ useEffect(() => {
 
       // validate the parsed date
       if (isNaN(givenDate.getTime())) {
-        console.warn("⚠️ Invalid installation date:", installdate);
+        console.warn(" Invalid installation date:", installdate);
         return;
       }
 
@@ -178,7 +177,7 @@ useEffect(() => {
     const handleSubmit=(event)=>{
       event.preventDefault();
      
-     axios.post(`${baseUrl}/otrentries/postotrdata`,{
+     api.post(`/otrentries/postotrdata`,{
       MILLER_TRANSPORTER_ID:mlID,
       MILLER_NAME:millername,
       district:districts,
@@ -226,7 +225,7 @@ const ITEM_HEIGHT = 48;
   };
   
   useEffect(() => {
-    axios.get(`${baseUrl}/otrentries/getotrdata`,{headers})
+    api.get(`/otrentries/getotrdata`,{headers})
       .then((res) => {
         const data = res.data;
         setGPS(data)

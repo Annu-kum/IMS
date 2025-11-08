@@ -1,5 +1,4 @@
 import * as React from 'react';
-import axios from 'axios';
 import CircularProgress from '@mui/material/CircularProgress';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
@@ -11,16 +10,16 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import TablePagination from '@mui/material/TablePagination';
 import Typography from '@mui/material/Typography';
-import { Button, MenuItem, Menu, useMediaQuery } from '@mui/material';
+import { Button, useMediaQuery } from '@mui/material';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import { CSVLink } from 'react-csv';
 import DateView from '../Manages/Installation/DateView';
 import Search from '../Manages/Installation/Search';
-import jspdf from 'jspdf';
 import Header from '../../Header';
 import { toast } from 'react-toastify';
+import api from '../../../account/BaseApi';
 
-const baseUrl = 'http://127.0.0.1:8000';
+   
 
 export default function MasterReports() {
   const [data, setData] = React.useState([]);
@@ -55,7 +54,7 @@ export default function MasterReports() {
       const formattedStartDate = start ? formatDate(start) : undefined;
       const formattedEndDate = end ? formatDate(end) : undefined;
 
-      const response = await axios.get(`${baseUrl}/masterReport/mastereport/`, {
+      const response = await api.get(`/masterReport/mastereport/`, {
         params: {
           start_date: formattedStartDate,
           end_date: formattedEndDate,
@@ -99,25 +98,6 @@ export default function MasterReports() {
     setSearch('');
   };
 
-  const filterData = () => {
-    let filteredData = data;
-
-    // Filter by search keyword
-    if (search) {
-      filteredData = filteredData.filter((item) =>
-        Object.values(item).some((value) =>
-          String(value).toLowerCase().includes(search.toLowerCase())
-        )
-      );
-    }
-
-    // Filter by date range
-
-    return filteredData;
-  };
-
-  const filteredData = filterData();
-
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
@@ -125,28 +105,6 @@ export default function MasterReports() {
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0); // Reset page to 0 when changing rows per page
-  };
-
-  const handleExportMenuOpen = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleExportMenuClose = () => {
-    setAnchorEl(null);
-  };
-
-  const exportToPDF = () => {
-    const doc = new jspdf({ orientation: 'landscape' });
-    doc.text('Active Report', 5, 10);
-    doc.autoTable({
-      html: '#reportTable',
-      theme: 'grid',
-      tableWidth: 'wrap',
-      alignItems: 'center',
-      styles: { cellPadding: 0.7, fontSize: 8, align: 'center' },
-    });
-
-    doc.save('Active_Report.pdf');
   };
 
   const [csvdatas,setCSVdata]=React.useState([])
@@ -163,7 +121,7 @@ export default function MasterReports() {
       const formattedStartDate = startDate ? formatDate(startDate) : undefined;
       const formattedEndDate = endDate ? formatDate(endDate) : undefined;
   
-      const response = await axios.get(`${baseUrl}/masterReport/mastereport/`, {
+      const response = await api.get(`/masterReport/mastereport/`, {
         params: {
           start_date: formattedStartDate,
           end_date: formattedEndDate,

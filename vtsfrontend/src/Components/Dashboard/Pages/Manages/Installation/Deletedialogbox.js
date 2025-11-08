@@ -1,31 +1,19 @@
-// import React from 'react'
-
-// export default function Deletedialogbox() {
-//   return (
-//     <div>Deletedialogbox</div>
-//   )
-// }
 import * as React from 'react';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
-import DialogTitle from '@mui/material/DialogTitle';
-import { TextField,Box,Paper, } from '@mui/material';
-import useMediaQuery from '@mui/material/useMediaQuery';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import api from '../../../../account/BaseApi';
 
-
-const baseUrl='http://127.0.0.1:8000'
 export default function Deletedialogbox(props) {
-  const [open, setOpen] = React.useState(false);
+  
   const {setDeleteid,setDeleteDialog,deleteDialog } = props;
-  const isNonMobile = useMediaQuery("(min-width:600px)");
+
  
- const[data,setdata]=React.useState([])
+ 
  const token = localStorage.getItem('Token');
  const headers = {
    'content-type': 'application/json',
@@ -48,7 +36,7 @@ const navigate= useNavigate()
 
   const handledeleteClick = (event) => {
     event.preventDefault();
-    axios.delete(`${baseUrl}/installation/deleteinstaller/${setDeleteid}/`,{headers})
+    api.delete(`/installation/deleteinstaller/${setDeleteid}/`,{headers})
     .then((res)=>{
         toast.success("Row deleted successfully")
         handleClose()

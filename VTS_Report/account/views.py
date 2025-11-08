@@ -47,7 +47,7 @@ class UserLogin(APIView):
         if not user.is_active:
             return Response({'status': 'User Verification is Pending'}, status=HTTP_400_BAD_REQUEST)
         
-                # ✅ Check if user is assigned to a specific session
+        #  Check if user is assigned to a specific session
         if user.session_year:
             if user.session_year.year != session_year:
                 return Response({

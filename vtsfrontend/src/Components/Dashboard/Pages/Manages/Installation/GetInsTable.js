@@ -2,55 +2,27 @@ import * as React from 'react';
 import { useEffect, useState } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
-import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/DeleteOutlined';
 import SaveIcon from '@mui/icons-material/Save';
 import CancelIcon from '@mui/icons-material/Close';
-import Menu from '@mui/material/Menu';
-import MenuItem from '@mui/material/MenuItem';
-import Tooltip from '@mui/material/Tooltip';
 import { Hidden, IconButton, TextField } from '@mui/material';
-import Dateview from './DateView';
-import Grid from '@mui/material/Unstable_Grid2/Grid2';
-import { CSVLink, CSVDownload } from 'react-csv';
 import { Typography } from '@mui/material';
 import { useTheme } from '@mui/material';
 import DownloadIcon from '@mui/icons-material/Download';
 import {
   GridRowModes,
   DataGrid,
-  GridToolbarContainer,
   GridActionsCellItem,
   GridRowEditStopReasons,
-  GridToolbarFilterButton,
-  GridToolbar,
-  GridToolbarExport,
-  GridPagination,
-  gridPageCountSelector,
-  useGridApiContext,
-  useGridSelector
 } from '@mui/x-data-grid';
-import {
-  randomCreatedDate,
-  randomTraderName,
-  randomId,
-  randomArrayItem,
-} from '@mui/x-data-grid-generator';
-import jspdf from 'jspdf';
 import 'jspdf-autotable';
-import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import Search from './Search';
 import ExportButton from './Exportbutton';
-import { createTheme } from '@mui/material/styles';
 import './install.css';
-import { Toolbar } from '@mui/material';
 import Header from '../../../Header';
-import Installation from './Installation';
-import axios from 'axios';
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { format } from 'date-fns';
 import Update_letterHeads from './UpdateLetterHead';
 import RefreshIcon from '@mui/icons-material/Refresh'
 import UploadIcon from '@mui/icons-material/Upload';
@@ -58,7 +30,7 @@ import BulkUpload from './BulkUpload';
 import Deletedialogbox from './Deletedialogbox';
 import {CircularProgress} from '@mui/material';
 import { useAuth } from '../../../../account/AuthContext';
-
+import api from '../../../../account/BaseApi';
 
 
 
@@ -90,7 +62,7 @@ export default function DataGridDemo() {
       setLoading(true);
       try {
         // Fetch your data here
-        const response = await axios.get(`http://127.0.0.1:8000/installation/getinstallerdetai/`,
+        const response = await api.get(`/installation/getinstallerdetai/`,
         {
         params: {
             search:search,
@@ -201,8 +173,8 @@ const deletePopups = id =>{
     }
 
     try {
-      const response = await axios.patch(
-        `http://127.0.0.1:8000/installation/updateinstaller/${newRow.id}/`,
+      const response = await api.patch(
+        `/installation/updateinstaller/${newRow.id}/`,
         formData,
         {
           headers: {
@@ -233,7 +205,7 @@ const deletePopups = id =>{
   const handleDownload = (id) => async () => {
         try {
       // Fetch  data from  API
-      const response = await axios.get(`http://127.0.0.1:8000/installation/geturl/${id}`,{headers});
+      const response = await api.get(`/installation/geturl/${id}`,{headers});
       const url = response.data.Installation_letterHead;
       setData(url);  // Set the URL to be used for download
       // Programmatically create and click a download link

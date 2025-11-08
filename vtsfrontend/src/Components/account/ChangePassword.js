@@ -5,20 +5,17 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import TextField from '@mui/material/TextField';
-import { createTheme, } from '@mui/material/styles';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import api from "./BaseApi";
 
-const defaultTheme = createTheme();
-const baseUrl = 'http://127.0.0.1:8000';
+
 
 export default function ChangePassword(props) {
   const navigate = useNavigate();
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [open, setOpen] = React.useState(false);
   const[maxWeight,setMaxwidth]=React.useState('lg')
   const{openDialog,setOpenDialog}=props
  
@@ -39,7 +36,7 @@ export default function ChangePassword(props) {
     };
 
     try {
-      await axios.post(`${baseUrl}/accounts/changepswd/`, {
+      await api.post(`/accounts/changepswd/`, {
         old_password: currentPassword,
         new_password: newPassword,
       }, { headers });
