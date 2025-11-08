@@ -1,4 +1,4 @@
-import React, { useRef,useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Paper from '@mui/material/Paper';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -7,32 +7,27 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
-import { IconButton,Menu, TextField, Button, MenuItem, Typography, Hidden } from '@mui/material';
-import {CSVLink,CSVDownload} from 'react-csv';
+import {  TextField, Button } from '@mui/material';
+import {CSVLink} from 'react-csv';
 import { Box } from '@mui/material';
 // import Dateview from './DateView';
 
-import Dateview from '../Manages/Installation/DateView';
 import  '../Manages/Installation/install.css';
 import Header from '../../Header';
 import { useTheme } from '@mui/material';
 import useMediaQuery from '@mui/material/useMediaQuery';
-import axios from 'axios';
-import TableSortLabel from '@mui/material/TableSortLabel';
 import EditIcon from '@mui/icons-material/Edit';
 import Search from '../Manages/Installation/Search';
-import zIndex from '@mui/material/styles/zIndex';
 import RefreshIcon from '@mui/icons-material/Refresh';
-import { getDate } from 'date-fns';
 import { toast } from 'react-toastify';
-import jspdf from 'jspdf';
 import 'jspdf-autotable';
 import UploadIcon from '@mui/icons-material/Upload';
 import UploadEx from './UploadEx';
+import api from "../../../account/BaseApi";
 
 
 export default function DealerEnrty() {
-  const [hide,setHide]=useState(true)
+
 const columns = [ 
 {id: 'Dealer_Name',label: 'Dealer Name',minWidth: 120,align: 'right',}, 
 {id:'contactno1',label:'Contact No1',minWidth: 120,align: 'right',},    
@@ -63,15 +58,9 @@ const initialRow = {
   const[companyName,setcompanyName]=useState('');
   const[remark,setRemark]=useState('');
   const[rowsPerPage,rowperpagechange]=React.useState(25);
-  const [rows, setRows] = useState([initialRow]);
-  const [newRow, setNewRow] = useState([]);
-  const [order, setOrder] = React.useState()
-  const [orderBy, setOrderBy] = React.useState()
-  const theme = useTheme();
   const isNonMobile = useMediaQuery("(min-width:600px)");
   const [value, setValue] = React.useState(1);
   const[search,setSearch]=React.useState('')
-  const [editedRows, setEditedRows] = useState([]);
   const [editingDealerId, setEditingDealerId] = useState(null);
   const [newDealerName, setNewDealerName] = useState('');
   const[newcontact1,setnewContact1]=useState('');
@@ -79,7 +68,6 @@ const initialRow = {
   const[newcompany,setnewcompany]=useState('');
   const[newrmark,setnewRemark]=useState('');
   const[fetchDealer,setfetchDealers]=useState([])
- const [refresh,setRefresh]=React.useState('')
  const [recordForEdit, setRecordForEdit] = useState(null)
  const [openPopup, setOpenPopup] = useState(false)
  const  [openDialog,setOpenDialog] = useState(false)
@@ -110,13 +98,11 @@ setOpenDialog(true)
     pageChange(0)
   }
 
-  const handleChange = (event, newValue) => {
-    setValue(newValue);
-  };
+
 
 //Get data form dealers table.
 const getData = async ()=>{
-  const response = await axios.get('http://127.0.0.1:8000/dealer/getdealer/',
+  const response = await api.get(`/dealer/getdealer/`,
      {
      params:{
     search:search
@@ -134,7 +120,7 @@ useEffect(()=>{
    event.preventDefault();
 
   
-  axios.post('http://127.0.0.1:8000/dealer/postdealer/',{
+  api.post(`/dealer/postdealer/`,{
     Dealer_Name:dealername,
     contactno1:contact1,
     contactno2:contact2,
@@ -176,7 +162,7 @@ useEffect(()=>{
 
 //Update table data....
 const handleUpdateClick = (dealerId) => {
-  axios.put(`http://127.0.0.1:8000/dealer/dealerupdate/${dealerId}/`, {
+  api.put(`/dealer/dealerupdate/${dealerId}/`, {
     Dealer_Name: newDealerName,
     contactno1: newcontact1,
     contactno2: newcontact2,
@@ -201,18 +187,10 @@ const handleUpdateClick = (dealerId) => {
 };
 
 
-function descendingComparator(a, b, orderBy) {
-  if (b[orderBy] < a[orderBy]) {
-      return -1;
-  }
-  if (b[orderBy] > a[orderBy]) {
-      return 1;
-  }
-  return 0;
-}
 
 
-const [arr,setArr]= useState('')
+
+
 
 
 

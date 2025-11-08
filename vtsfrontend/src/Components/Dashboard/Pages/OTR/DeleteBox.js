@@ -3,16 +3,13 @@ import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
-import DialogTitle from '@mui/material/DialogTitle';
-import { TextField,Box,Paper, } from '@mui/material';
 import useMediaQuery from '@mui/material/useMediaQuery';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import api from '../../../account/BaseApi';
 
 
-const baseUrl='http://127.0.0.1:8000'
 export default function DeleteBox(props) {
   const [open, setOpen] = React.useState(false);
   const { openDialog,setOpenDialog, setdeleteId,refreshData} = props;
@@ -41,7 +38,7 @@ const navigate= useNavigate()
 
   const handleUpdateClick = (event) => {
     event.preventDefault();
-    axios.delete(`${baseUrl}/otrentries/deletebyid/${setdeleteId}`,{headers:headers})
+    api.delete(`/otrentries/deletebyid/${setdeleteId}`,{headers:headers})
     .then((res)=>{
         toast.success("Row deleted successfully")
         handleClose()

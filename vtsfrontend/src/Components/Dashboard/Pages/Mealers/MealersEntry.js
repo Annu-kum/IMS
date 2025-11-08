@@ -7,10 +7,10 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
-import {  TextField, Button, Menu,MenuItem } from '@mui/material';
+import {  TextField, Button} from '@mui/material';
 import jspdf from 'jspdf';
 import 'jspdf-autotable';
-import {CSVLink,CSVDownload} from 'react-csv';
+import {CSVLink} from 'react-csv';
 import { Box } from '@mui/material';
 // import Dateview from './DateView';
 
@@ -18,7 +18,6 @@ import  '../Manages/Installation/install.css';
 import Header from '../../Header';
 import { useTheme } from '@mui/material';
 import useMediaQuery from '@mui/material/useMediaQuery';
-import axios from 'axios';
 
 import EditIcon from '@mui/icons-material/Edit';
 import Search from '../Manages/Installation/Search';
@@ -29,9 +28,7 @@ import UploadIcon from '@mui/icons-material/Upload';
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import UploadCSV from './UploadCSV';
-import PrintIcon from '@mui/icons-material/Print';
-import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
-
+import api from '../../../account/BaseApi';
 
 export default function MealersEntry() {
   const [hide,setHide]=useState(true)
@@ -52,12 +49,11 @@ const initialRow = {
 };
 
 
-const baseUrl= 'http://127.0.0.1:8000'
+
 
 
 
   const [page,pageChange]=React.useState(0);
-  const[dealername,setDealername]=useState('')
   const[rowsPerPage,rowperpagechange]=React.useState(25);
   const [rows, setRows] = useState([initialRow]);
   const [newRow, setNewRow] = useState([]);
@@ -67,7 +63,6 @@ const baseUrl= 'http://127.0.0.1:8000'
   const isNonMobile = useMediaQuery("(min-width:600px)");
   const [value, setValue] = React.useState(1);
   const[search,setSearch]=React.useState('')
-  const [editedRows, setEditedRows] = useState([]);
   const [editingDealerId, setEditingDealerId] = useState(null);
   const [newDealerName, setNewDealerName] = useState('');
   const[fetchMldetails,setmlDetails]=useState([])
@@ -111,7 +106,7 @@ const dialogbox=()=>{
 
 //Get data form dealers table.
 const getData = async ()=>{
-  const response = await axios.get(`${baseUrl}/millers/getmillerss/`,{headers})
+  const response = await api.get(`/millers/getmillerss/`,{headers})
   setmlDetails(response.data.results)
   setDatacount(response.data.count)
  }
@@ -129,7 +124,7 @@ useEffect(()=>{
     return;
   }
  
-  axios.post(`${baseUrl}/millers/postmiller/`,{
+  api.post(`/millers/postmiller/`,{
     MILLER_TRANSPORTER_ID:mlID,
     MILLER_NAME: millername,
     ContactNo: ContactNo,

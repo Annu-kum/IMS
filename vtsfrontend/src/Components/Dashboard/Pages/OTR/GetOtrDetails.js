@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import Paper from '@mui/material/Paper';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
@@ -7,10 +6,10 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
-import {  TextField, Button, Menu,MenuItem, IconButton } from '@mui/material';
+import {   Button, IconButton } from '@mui/material';
 import jspdf from 'jspdf';
 import 'jspdf-autotable';
-import {CSVLink,CSVDownload} from 'react-csv';
+import {CSVLink} from 'react-csv';
 import { Box } from '@mui/material';
 // import Dateview from './DateView';
 
@@ -18,24 +17,18 @@ import  '../Manages/Installation/install.css';
 import Header from '../../Header';
 import { useTheme ,Typography} from '@mui/material';
 import useMediaQuery from '@mui/material/useMediaQuery';
-import axios from 'axios';
 import Dateview from '../Manages/Installation/DateView';
 import EditIcon from '@mui/icons-material/Edit';
 import Search from '../Manages/Installation/Search';
 import DeleteIcon from '@mui/icons-material/Delete';
-import RefreshIcon from '@mui/icons-material/Refresh';
 // import Updatemillers from './Updatemillers';
-import UploadIcon from '@mui/icons-material/Upload';
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-// import UploadCSV from './UploadCSV';
-import PrintIcon from '@mui/icons-material/Print';
-import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import ExportButton from './ExportButton';
 import UpdateOtr from './UpdateOtr';
 import DeleteBox from './DeleteBox';
 import {CircularProgress} from '@mui/material';
-
+import api from '../../../account/BaseApi';
 export default function GetOtrDetails() {
   const [hide,setHide]=useState(true)
   const [startDate,setStartRange]=React.useState(new Date())
@@ -76,7 +69,7 @@ const initialRow = {
 };
 
 
-const baseUrl= 'http://127.0.0.1:8000'
+
 
 
 
@@ -154,7 +147,7 @@ const deletePopup = item =>{
       const formattedStartDate = start ? formatDate(start) : undefined;
       const formattedEndDate = end ? formatDate(end) : undefined;
   
-      const response = await axios.get(`${baseUrl}/otrentries/getallotr`, {
+      const response = await api.get(`/otrentries/getallotr`, {
         params: {
           start_date: formattedStartDate,
           end_date: formattedEndDate,

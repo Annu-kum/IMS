@@ -5,32 +5,22 @@ import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
-import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
 import { IconButton, TextField, Button, MenuItem, Typography, Hidden } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import { v4 as uuid } from 'uuid';
-import Dialogs from './DialogBox';
 import Grid from '@mui/material/Unstable_Grid2/Grid2';
 import { Box } from '@mui/material';
-import Dateview from './DateView';
-import { DataGrid, gridColumnVisibilityModelSelector, } from '@mui/x-data-grid';
-import ExportButton from './Exportbutton';
 import Header from '../../../Header';
-import { useTheme } from '@mui/material';
 import useMediaQuery from '@mui/material/useMediaQuery';
-import axios from 'axios';
 import './install.css';
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import DeleteIcon from '@mui/icons-material/Delete';
-import { formatDate } from 'date-fns';
+import api from '../../../../account/BaseApi';
 
 
-const baseUrl='http://127.0.0.1:8000'
 export default function InputTable() {
-  const [hide,setHide]=useState(true)
-  
 const columns = [
   { id: 'delete', label: 'Action' },
   { id: 'Entity_id', label: 'Entity_ID', minWidth: 200 },
@@ -133,9 +123,6 @@ const initialRow = {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(25);
   const [rows, setRows] = useState([{...initialRow}]);
-  const [newRow, setNewRow] = useState([]);
-  const dname =useRef('')
-  const theme = useTheme()
   const isNonMobile = useMediaQuery("(min-width:600px)");
   const [mlID,setMlID]=useState('')
   const [dealerName,setDealername]=useState(' ')
@@ -174,14 +161,14 @@ const initialRow = {
 
   const[loadDealers,setLoadealers]=useState([])
   useEffect(() => {
-    axios.get(`${baseUrl}/dealer/getdealer/`,{headers})
+    api.get(`/dealer/getdealer/`,{headers})
     .then((response) => {
       setLoadealers(response.data.results);
     });
   }, []);
 
   const handleonLoad=()=>{
-    axios.get(`${baseUrl}/millers/getmillers/${mlID}/`,{headers})
+    api.get(`/millers/getmillers/${mlID}/`,{headers})
     .then((res)=>{
      const data=res.data;
      setPost(data)
@@ -196,34 +183,6 @@ const initialRow = {
  
 
 
-
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(+event.target.value);
-    setPage(0);
-  };
-  // const formData = new FormData()
-  // Object.keys(newRow).forEach(key => formData.append(key, row[key]));
-  //   if (row.Installation_letterHead) {
-  //     formData.append('File', row.Installation_letterHead);
-  //   } 
-
-//  const files = newRow.forEach((row) => {
-//     const formData = new FormData();
-//     Object.keys(row).forEach(key => formData.append(key, row[key]));
-//     if (row.Installation_letterHead) {
-//       formData.append('File', row.Installation_letterHead);
-//     }
-//   })
-
-  
-
-
-const [installedData,setinstalledData]=useState('')
-
 const handleInputChange = (id, field, value) => {
     if (field === 'Installation_letterHead') {
       setFile(value);
@@ -235,23 +194,13 @@ const handleInputChange = (id, field, value) => {
         prevRows.map((row) => (row.id === id ? { ...row, [field]: value } : row))
       );
     }
-    // setRows((prevRows) =>
-    //   prevRows.map((row) => (row.id === id ? {...row, [field]: value } : row))
-    // );
+
     
   };
 
 
 const handleSave = () => {
-  // rows.forEach((row) => {
-  //   const formData = new FormData();
-  //   // Object.keys(row).forEach((key) => {formData.append(key, row[key])});
-  //   // append all row fields
-  //   Object.keys(row).forEach((key) => {
-  //     if (key !== 'Installation_letterHead') {
-  //       formData.append(key, row[key]);
-  //     }
-  //   });
+
     rows.forEach((row) => {
     const formData = new FormData();
 
@@ -278,13 +227,7 @@ const handleSave = () => {
       formData.append('district', districts);
       formData.append('MillerContactNo', MAcontactno);
       formData.append('Dealer_Name', dealerName);
-      // formData.append('Installation_letterHead', file);
-      // Append multiple files
-      //  append multiple files
-    // file.forEach((f) => {
-    //   formData.append('Installation_letterHead', f);
-    // });
-    axios.post(`${baseUrl}/installation/postinstaller/`,formData,{
+    api.post(`/installation/postinstaller/`,formData,{
     headers: {
       'Content-Type': 'multipart/form-data',
       'Authorization': `Token ${token}`,
@@ -292,8 +235,6 @@ const handleSave = () => {
     )
       .then((res) =>{ 
         toast.success("Data saved",{theme:"light",position:"top-center"},setMlID(''), setRows([initialRow]));
-        // setMlID(''),
-       // setRows([initialRow])
      }
   ).catch((err) =>{toast.error("something went wrong, please check dealerName, Date or upload letterhead",{theme:"light",position:"top-center"}
    )
@@ -338,7 +279,7 @@ const handleSave = () => {
       setRows(rows.filter((row) => row.id !== id));
     };
 
-const [arr,setArr]= useState('')
+
 
 
 
@@ -461,7 +402,6 @@ return (
                 disabled
                 sx={{gridColumn:'Span 4' }}
                 InputProps={{sx:{height:'40px'}}}
-                // InputProps={{value:}}
               />
              
              </Box>

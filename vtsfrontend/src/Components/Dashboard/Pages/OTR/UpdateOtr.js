@@ -6,7 +6,6 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import { TextField,Box,Paper, } from '@mui/material';
 import useMediaQuery from '@mui/material/useMediaQuery';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -14,7 +13,8 @@ import {IconButton} from '@mui/material';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import { addMonths,format,parse } from 'date-fns';
 import {InputAdornment} from '@mui/material';
-const baseUrl='http://127.0.0.1:8000'
+import api from '../../../account/BaseApi';
+
 export default function UpdateOtr(props) {
   const [open, setOpen] = React.useState(false);
   const { setRecordForEdit, openPopup, setOpenPopup ,refreshData} = props;
@@ -58,7 +58,7 @@ export default function UpdateOtr(props) {
 
   React.useEffect(()=>{
     if (setRecordForEdit) {
-      axios.get(`${baseUrl}/otrentries/getbygpsno/${setRecordForEdit}`,{headers:headers})
+      api.get(`/otrentries/getbygpsno/${setRecordForEdit}`,{headers:headers})
         .then((res) => {
           setValues(res.data); 
         })
@@ -105,7 +105,7 @@ const navigate= useNavigate()
 
   const handleUpdateClick = (event) => {
     event.preventDefault();
-    axios.put(`${baseUrl}/otrentries/updatebyid/${setRecordForEdit}`,values,headers)
+    api.put(`/otrentries/updatebyid/${setRecordForEdit}`,values,headers)
     .then((res)=>{
         toast.success("Row updated successfully")
         handleClose()

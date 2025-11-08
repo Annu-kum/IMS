@@ -1,55 +1,26 @@
 import React, { useEffect } from 'react'
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
-import Menu from '@mui/material/Menu';
-import MenuItem from '@mui/material/MenuItem';
 import Dateview from '../Manages/Installation/DateView';
-import Grid from '@mui/material/Unstable_Grid2/Grid2';
-import {CSVLink,CSVDownload} from 'react-csv';
-import  {TableFooter, useTheme } from '@mui/material';
-import {
-  GridRowModes,
-  DataGrid,
-  GridToolbarContainer,
-  GridActionsCellItem,
-  GridRowEditStopReasons,
-  GridToolbarFilterButton,
-  GridToolbar,
-  GridToolbarExport,
-  GridPagination,
-  gridPageCountSelector,
-  useGridApiContext,
-  useGridSelector
-} from '@mui/x-data-grid';
-import jspdf from 'jspdf';
+import {CSVLink} from 'react-csv';
+import  { useTheme } from '@mui/material';
 import 'jspdf-autotable';
 import Search from '../Manages/Installation/Search';
 import '../Manages/Installation/install.css'
-import { yellow } from '@mui/material/colors';
-import {TextField,TableCell,TableRow,TableContainer,Table,TableHead,TableSortLabel,TableBody,TablePagination} from '@mui/material';
+import {TableCell,TableRow,TableContainer,Table,TableHead,TableSortLabel,TableBody,TablePagination} from '@mui/material';
 import Header from '../../Header';
-import ShareIcon from '@mui/icons-material/Share';
-import InputAdornment from '@mui/material';
-import axios from 'axios';
-import {Paper} from '@mui/material';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import { Link } from 'react-router-dom';
 import DealerwiseReport from './DealerwiseReport';
 import {CircularProgress,Typography} from '@mui/material';
-function EditToolbar(props) {
-  const { setRows, setRowModesModel } = props;
-
-}
+import api from '../../../account/BaseApi';
 
 
-const baseUrl='http://127.0.0.1:8000'
 
 
 
 export default function DealerReport() {
   const [rows, setRows] = React.useState([]);
-  const [rowModesModel, setRowModesModel] = React.useState({});
-  const [DataFromChild,setDataFromChild]=React.useState('')
   const theme = useTheme()
   const [startDate,setStartDate]=React.useState(new Date())
   const [endDate,setEndDate]=React.useState(new Date())
@@ -57,7 +28,6 @@ export default function DealerReport() {
   const[rowsPerPage,rowperpagechange]=React.useState(25);
   const [order, setOrder] = React.useState()
   const [orderBy, setOrderBy] = React.useState()
-  const [recordForEdit, setRecordForEdit] = React.useState(null)
   const [openPopup, setOpenPopup] = React.useState(false)
   const [selectedDealerName, setSelectedDealerName] = React.useState(null);
   const [loading,setLoading]=React.useState(true)
@@ -118,7 +88,7 @@ const token = localStorage.getItem('Token');
     const formattedEndDate = end ? formatDate(end) : undefined;
 
     // Fetch data
-    const response = await axios.get(`${baseUrl}/otrdetails/dealerReport/`, {
+    const response = await api.get(`/otrdetails/dealerReport/`, {
       params: {
         start_date: formattedStartDate,
         end_date: formattedEndDate,
@@ -155,7 +125,7 @@ const refreshBtn=()=>{
 
 
 useEffect(() => {
-  axios.get(`${baseUrl}/otrdetails/getSum/`,{headers}) 
+  api.get(`/otrdetails/getSum/`,{headers}) 
   .then(response => {
     const data = response.data;
     if (data && data.overall_totals) {
@@ -180,52 +150,14 @@ useEffect(() => {
  
   //columns of the table...
 
-  //PDF Converter....
-  function pdfs(){
-    const doc=new jspdf({orientation:'portrait'})
-    doc.text('Dealerwise Report',12,8)
-    doc.autoTable({
-      theme:'grid',
-//       columns:[
-//         {header:'Dealer Name',dataKey:'dealername'},
-//         {header:'Total Count',dataKey:'totalcount'},
-//         {header:'New Install',dataKey:'newinstall'},
-//         {header:'Total Renewal',dataKey:'totalrenewal'},
-//         {header:'Total Otr',dataKey:'totalotr'},
-// ],
 
-      columns: columns.map(col => ({ 
-        header: col.label, 
-        dataKey: col.field, 
-        columnWidth: 10 // or a specific width, e.g. 50
-        
-      })),
-      tableLineWidth: 0,
-     
-      pageSize:'A0',
-      cellWidth: 8,
-      body: rows,
-
-      headStyles: {
-        fontSize: 8, // adjust font size to fit the width
-        halign: 'center', // center the header text
-        margin: { top: 1, },  
-        
-        lineColor: [0, 0, 0] // black border
-      },
-      theme: 'grid', // or 'triped' or 'plain'
-    });
-    doc.save('Dealer Report.pdf');
-  }
   //Groups of buttons...
   const [anchorEl, setAnchorEl] = React.useState(null);
   const open = Boolean(anchorEl);
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
   };
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
+
  
   
 
@@ -243,22 +175,8 @@ useEffect(() => {
   };
   
   const [searchs,setSearch]=React.useState('')
-  // filter according to date 
-  // const dateFilter =(startDate,endDate)=>{
-  //      setDateRange(startDate)
-  //      setDateRanges(endDate)
-       
-  // }
-  // console.log(startDate,endDate)
   //Code for filtering data....
   const filterRowsBySearch = () => {
-    // if ((!startDate || !endDate )|| searchs) {
-    //   return rows;
-    // }
-    // return rows.filter(item => {
-    //   const itemDate = new Date(item.joinDate); // Assuming date is a property in your data
-    //   return itemDate >= startDate && itemDate <= endDate;
-    // });
 
     return rows.filter((item) => {
       let searchFilter = true;
@@ -277,15 +195,7 @@ useEffect(() => {
     
   };
 
-function CustomToolbar() {
-    return (
-      <div style={{ order: 1 }}>
-        <GridToolbarContainer>
-          <GridToolbarFilterButton />
-        </GridToolbarContainer>
-      </div>
-    );
-  }
+
 
   const [value, setValue] = React.useState(1);
 

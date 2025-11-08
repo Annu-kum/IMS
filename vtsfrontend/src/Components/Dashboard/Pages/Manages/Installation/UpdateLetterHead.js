@@ -1,23 +1,15 @@
 import React, { useState } from 'react';
-import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, TextField, Box, useMediaQuery } from '@mui/material';
-import UploadFileOutlinedIcon from '@mui/icons-material/UploadFileOutlined';
-import axios from 'axios';
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Box, useMediaQuery } from '@mui/material';
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import api from '../../../../account/BaseApi';
 
-const baseUrl = 'http://127.0.0.1:8000';
 
-const getFileNameFromUrl = (url) => {
-  return url.split('/').pop();
-};
+
 
 export default function Update_letterHeads(props) {
   const { openPopup, setOpenPopup, setids } = props;
-  const [millerTransporterId, setMillerTransporterId] = useState('');
   const [letterHeadFile, setLetterHeadFile] = useState(null);
-  const [installationData, setInstallationData] = useState(null);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
   const isNonMobile = useMediaQuery("(min-width:600px)");
   const token = localStorage.getItem('Token');
   
@@ -34,7 +26,7 @@ export default function Update_letterHeads(props) {
     formData.append('Installation_letterHead', letterHeadFile);
 
     try {
-      const response = await axios.patch(`${baseUrl}/installation/update-installation/${setids}/`, formData, {
+      const response = await api.patch(`/installation/update-installation/${setids}/`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           'Authorization': `Token ${token}`,

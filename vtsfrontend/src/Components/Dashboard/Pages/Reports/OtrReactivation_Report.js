@@ -2,24 +2,21 @@ import * as React from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Dateview from '../Manages/Installation/DateView';
-import {CSVLink,CSVDownload} from 'react-csv';
+import {CSVLink} from 'react-csv';
 import  {useTheme } from '@mui/material';
 import RefreshIcon from '@mui/icons-material/Refresh'
 import 'jspdf-autotable';
 import Search from '../Manages/Installation/Search';
 import '../Manages/Installation/install.css'
-import {TextField,TableCell,TableRow,TableContainer,Typography,Table,TableHead,TableSortLabel,TableBody,TablePagination} from '@mui/material';
-
-import axios from 'axios';
+import {TableCell,TableRow,TableContainer,Typography,Table,TableHead,TableSortLabel,TableBody,TablePagination} from '@mui/material';
 
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import {CircularProgress} from '@mui/material';
 import { useAuth } from '../../../account/AuthContext';
+import api from '../../../account/BaseApi';
 
 
-
-const baseUrl='http://127.0.0.1:8000';
 
 export default function OtrReactivation_Report() {
   const [rows, setRows] = React.useState([]);
@@ -104,7 +101,7 @@ const userColumns = [
       const formattedStartDate = start ? formatDate(start) : undefined;
       const formattedEndDate = end ? formatDate(end) : undefined;
   
-      const response = await axios.get(`${baseUrl}/reactivation/otrReactivationReport/`, {
+      const response = await api.get(`/reactivation/otrReactivationReport/`, {
         params: {
           start_date: formattedStartDate,
           end_date: formattedEndDate,
@@ -142,7 +139,7 @@ const csvLinkRef = React.useRef();
     const formattedStartDate = startDate ? formatDate(startDate) : undefined;
     const formattedEndDate = endDate ? formatDate(endDate) : undefined;
 
-    const response = await axios.get(`${baseUrl}/reactivation/otrReactivationReport/`, {
+    const response = await api.get(`/reactivation/otrReactivationReport/`, {
       params: {
         start_date: formattedStartDate,
         end_date: formattedEndDate,

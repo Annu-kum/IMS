@@ -6,13 +6,11 @@ import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import useMediaQuery from '@mui/material/useMediaQuery';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import api from '../../../account/BaseApi';
 
-
-const baseUrl='http://127.0.0.1:8000'
 export default function DeleteDialog(props) {
   const [open, setOpen] = React.useState(false);
   const {setDeleteid,setDeleteDialog,deleteDialog } = props;
@@ -41,7 +39,7 @@ const navigate= useNavigate()
 
   const handledeleteClick = (event) => {
     event.preventDefault();
-    axios.delete(`${baseUrl}/reactivation/deleteReactivate/${setDeleteid}/`,{headers})
+    api.delete(`/reactivation/deleteReactivate/${setDeleteid}/`,{headers})
     .then((res)=>{
         toast.success("Row deleted successfully")
         handleClose()

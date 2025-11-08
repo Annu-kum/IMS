@@ -5,13 +5,10 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
 import { Box, Typography } from '@mui/material';
-import axios from 'axios';
 import {TableCell,TableRow,MenuItem,Menu,Table,TableHead,TableBody} from '@mui/material';
-// import jspdf from 'jspdf';
 import 'jspdf-autotable';
 import { CSVLink } from 'react-csv';
-
-const baseUrl='http://127.0.0.1:8000'
+import api from '../../../account/BaseApi'; 
 const DealerwiseReport = ({ selectedDealerName, openPopup, setOpenPopup }) => {
     const[rows,setRows]=React.useState(null)
     const[datas,setData]=React.useState([])
@@ -29,13 +26,8 @@ const DealerwiseReport = ({ selectedDealerName, openPopup, setOpenPopup }) => {
   };
  
  useEffect(()=>{
-//     axios.get(`${baseUrl}/otrdetails/FetchDealerdata/${selectedDealerName}/`)
-//     .then((res)=>{
-//          setRows(res.data)
-//     })
-//  },
 if (selectedDealerName) {
-    axios.get(`${baseUrl}/otrdetails/FetchDealerdata/${selectedDealerName}/`,{headers})
+    api.get(`/otrdetails/FetchDealerdata/${selectedDealerName}/`,{headers})
       .then((res) => {
         setRows(res.data);
         console.log(rows)

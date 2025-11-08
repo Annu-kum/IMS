@@ -4,28 +4,21 @@ import Button from '@mui/material/Button';
 
 import Dateview from '../Manages/Installation/DateView';
 
-import {CSVLink,CSVDownload} from 'react-csv';
+import {CSVLink} from 'react-csv';
 import  {useTheme } from '@mui/material';
-import {
- 
-  GridToolbarContainer,
-  
-  GridToolbarFilterButton,
- 
-} from '@mui/x-data-grid';
-import jspdf from 'jspdf';
+
 import 'jspdf-autotable';
 import Search from '../Manages/Installation/Search';
 import '../Manages/Installation/install.css'
-import {TextField,TableCell,TableRow,TableContainer,Table,TableHead,TableSortLabel,TableBody,TablePagination} from '@mui/material';
-import axios from 'axios';
+import {TableCell,TableRow,TableContainer,Table,TableHead,TableSortLabel,TableBody,TablePagination} from '@mui/material';
+
 
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import RefreshIcon from '@mui/icons-material/Refresh';
 import {CircularProgress} from '@mui/material';
 import { useAuth } from '../../../account/AuthContext';
-
+import api from '../../../account/BaseApi';
 
 export default function DeactivationReport() {
   const [rows, setRows] = React.useState([]);
@@ -111,7 +104,7 @@ const getData = async (start, end) => {
     const formattedStartDate = start ? formatDate(start) : undefined;
     const formattedEndDate = end ? formatDate(end) : undefined;
 
-    const response = await axios.get(`http://127.0.0.1:8000/deactivation/getdeactivatedetai/`, {
+    const response = await api.get(`/deactivation/getdeactivatedetai/`, {
       params: {
         start_date: formattedStartDate,
         end_date: formattedEndDate,
@@ -187,7 +180,7 @@ const [csvdatas,setCSVdata]=React.useState([])
       const formattedStartDate = startDate ? formatDate(startDate) : undefined;
       const formattedEndDate = endDate ? formatDate(endDate) : undefined;
   
-      const response = await axios.get(`http://127.0.0.1:8000/deactivation/getdeactivatedetai/`, {
+      const response = await api.get(`/deactivation/getdeactivatedetai/`, {
         params: {
           start_date: formattedStartDate,
           end_date: formattedEndDate,

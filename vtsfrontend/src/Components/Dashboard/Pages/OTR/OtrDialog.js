@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
-import axios from 'axios';
 import {Box} from '@mui/material';
 import { Button } from '@mui/material';
+import api from '../../../account/BaseApi';
 
-const baseUrl = 'http://127.0.0.1:8000';
 const ITEM_HEIGHT = 48;
 
 export default function OtrDialog() {
@@ -28,7 +27,7 @@ export default function OtrDialog() {
   };
 
   useEffect(() => {
-    axios.get(`${baseUrl}/otrentries/getotrdata`,{headers})
+    api.get(`/otrentries/getotrdata`,{headers})
       .then((res) => {
         const data = res.data;
         console.log(data);

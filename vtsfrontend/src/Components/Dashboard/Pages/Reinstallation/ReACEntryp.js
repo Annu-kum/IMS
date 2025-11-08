@@ -3,53 +3,31 @@ import * as React from 'react';
 import { useEffect, useState } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
-import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/DeleteOutlined';
 import SaveIcon from '@mui/icons-material/Save';
 import CancelIcon from '@mui/icons-material/Close';
-import Menu from '@mui/material/Menu';
-import MenuItem from '@mui/material/MenuItem';
-import Tooltip from '@mui/material/Tooltip';
-import { TextField }from '@mui/material';
-import Grid from '@mui/material/Unstable_Grid2/Grid2';
-import {CSVLink,CSVDownload} from 'react-csv';
 import {Typography} from '@mui/material';
 import  {useTheme } from '@mui/material';
 import {
   GridRowModes,
   DataGrid,
-  GridToolbarContainer,
   GridActionsCellItem,
   GridRowEditStopReasons,
-  GridToolbarFilterButton,
-  GridToolbar,
-  GridToolbarExport,
-  GridPagination,
-  gridPageCountSelector,
-  useGridApiContext,
-  useGridSelector
 } from '@mui/x-data-grid';
-import {
-  randomCreatedDate,
-  randomTraderName,
-  randomId,
-  randomArrayItem,
-} from '@mui/x-data-grid-generator';
-import jspdf from 'jspdf';
+
 import 'jspdf-autotable';
-import FileDownloadIcon from '@mui/icons-material/FileDownload';
+
 import Search from '../Manages/Installation/Search';
 import NewEntry from './Reactivebutton';
-import { createTheme } from '@mui/material/styles';
+
 import '../Manages/Installation/install.css'
-import { Toolbar } from '@mui/material';
+
 import Header from '../../Header';
 
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { format } from 'date-fns';
-import axios from 'axios';
+
 import IconButton from '@mui/material/IconButton';
 import DownloadIcon from '@mui/icons-material/Download';
 import UpdateletterHead from './Updateletterhead';
@@ -59,7 +37,7 @@ import BulkUpload from './BulkUpload';
 import DeleteDialog from './DeleteDialog';
 import {CircularProgress} from '@mui/material';
 import { useAuth } from '../../../account/AuthContext';
-
+import api from '../../../account/BaseApi';
 
 export default function DataGridDemo() {
   const [rows, setRows] = useState([]);
@@ -89,7 +67,7 @@ export default function DataGridDemo() {
       setLoading(true);
       try {
         // Fetch your data here
-        const response = await axios.get(`http://127.0.0.1:8000/reactivation/getReactivatedetai/`,
+        const response = await api.get(`/reactivation/getReactivatedetai/`,
        {
         params: {
             search:search,
@@ -175,8 +153,8 @@ const dialogbox=()=>{
     }
 
     try {
-      const response = await axios.patch(
-        `http://127.0.0.1:8000/reactivation/updateReactivate/${newRow.id}/`,
+      const response = await api.patch(
+        `/reactivation/updateReactivate/${newRow.id}/`,
         formData,
         {
           headers: {
@@ -205,7 +183,7 @@ const dialogbox=()=>{
   const handleDownload = (id) => async () => {
       try {
       // Fetch  data from  API
-      const response = await axios.get(`http://127.0.0.1:8000/reactivation/reactivegeturl/${id}`);
+      const response = await api.get(`/reactivation/reactivegeturl/${id}`);
       const url = response.data.Reactivation_letterHead;
       setData(url);  // Set the URL to be used for download
    

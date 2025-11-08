@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-import axios from "axios";
-
+import api from "./BaseApi";
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
@@ -10,7 +9,7 @@ export const AuthProvider = ({ children }) => {
     const token = localStorage.getItem("Token");
 
     if (token) {
-      axios.get("http://127.0.0.1:8000/accounts/whoiam/", {
+      api.get(`/accounts/whoiam/`, {
         headers: { Authorization: `Token ${token}` },
       }).then(res => {
         setAuth({

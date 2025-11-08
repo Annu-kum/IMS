@@ -13,18 +13,15 @@ import Grid from '@mui/material/Unstable_Grid2/Grid2';
 import { Box } from '@mui/material';
 import  '../Manages/Installation/install.css';
 import DeleteIcon from '@mui/icons-material/Delete';
-import axios from 'axios';
-import Dateview from '../Manages/Installation/DateView';
 import  '../Manages/Installation/install.css';
 import Header from '../../Header';
 import { useTheme } from '@mui/material';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import api from '../../../account/BaseApi';
 
-const baseUrl='http://127.0.0.1:8000'
 export default function InputTable() {
-  const [hide,setHide]=useState(true)
   
 const columns = [
   { id:'delete', label:'Action' },
@@ -169,14 +166,14 @@ const initialRow = {
 
   const[loadDealers,setLoadealers]=useState([])
   useEffect(() => {
-    axios.get(`${baseUrl}/dealer/getdealer/`,{headers})
+    api.get(`/dealer/getdealer/`,{headers})
     .then((response) => {
       setLoadealers(response.data.results);
     });
   }, []);
 
   const handleonLoad=()=>{
-    axios.get(`${baseUrl}/millers/getmillers/${mlID}/`,{headers})
+    api.get(`/millers/getmillers/${mlID}/`,{headers})
     .then((res)=>{
      const data=res.data;
      setPost(data)
@@ -246,7 +243,7 @@ const handleSave = () => {
       formData.append('MillerContactNo', MAcontactno);
       formData.append('Dealer_Name', dealerName);
       // formData.append('Reactivation_letterHead', file);
-    axios.post(`${baseUrl}/reactivation/postReactivate/`,formData,{
+    api.post(`/reactivation/postReactivate/`,formData,{
     headers: {
       'Content-Type': 'multipart/form-data',
       'Authorization': `Token ${token}`,

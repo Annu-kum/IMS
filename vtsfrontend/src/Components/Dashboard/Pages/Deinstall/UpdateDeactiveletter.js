@@ -1,11 +1,8 @@
 import React, { useState } from 'react';
-import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, TextField, Box, useMediaQuery } from '@mui/material';
-import UploadFileOutlinedIcon from '@mui/icons-material/UploadFileOutlined';
-import axios from 'axios';
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Box, useMediaQuery } from '@mui/material';
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
-const baseUrl = 'http://127.0.0.1:8000';
+import api from '../../../account/BaseApi';
 
 const getFileNameFromUrl = (url) => {
   return url.split('/').pop();
@@ -34,7 +31,7 @@ export default function UpdateDeactiveletter(props) {
     formData.append('Deactivation_letterHead', letterHeadFile);
 
     try {
-      const response = await axios.patch(`${baseUrl}/deactivation/update-deactivation/${setids}/`, formData, {
+      const response = await api.patch(`/deactivation/update-deactivation/${setids}/`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           'Authorization': `Token ${token}`,          
