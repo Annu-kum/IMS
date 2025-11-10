@@ -156,7 +156,7 @@ const initialRow = {
   const [file, setFile] = useState(null)
   // replace single file with multiple files
   const [extraFiles, setextraFiles] = useState([]);
-  
+  const[post,setPost]=useState('')
   const token = localStorage.getItem('Token');
  const headers = {
    'content-type': 'application/json',
@@ -166,11 +166,18 @@ const initialRow = {
 
   const[loadDealers,setLoadealers]=useState([])
   useEffect(() => {
-    api.get(`/dealer/getdealer/`,{headers})
-    .then((response) => {
-      setLoadealers(response.data.results);
-    });
-  }, []);
+  const fetchDealers = async () => {
+    try {
+      const response = await api.get(`/dealer/getdealer/`, { headers });
+      const dealers = response.data.results || response.data;
+      setLoadealers(dealers || []);
+    } catch (error) {
+      console.error("Error fetching dealers:", error);
+    }
+  };
+
+  fetchDealers();
+}, []);
 
   const handleonLoad=()=>{
     api.get(`/millers/getmillers/${mlID}/`,{headers})
@@ -186,20 +193,6 @@ const initialRow = {
     }).catch((err)=>toast.error('miller not found'))
  }
  
-
-
-
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(+event.target.value);
-    setPage(0);
-  };
-
-  
-const [rectiveData,setreactiveData]=useState('')
 
 const handleInputChange = (id, field, value) => {
     if (field === 'Reactivation_letterHead') {
@@ -296,12 +289,6 @@ const handleSave = () => {
     const handleDeleteRow = (id) => {
       setRows(rows.filter((row) => row.id !== id));
     };
-
-const [arr,setArr]= useState('')
-
-
-
-const[post,setPost]=useState('')
 
 
 return (
@@ -443,38 +430,27 @@ return (
            
              <Box sx={{ fontWeight: 'bold' }}>
                 <label>Dealer_Name</label>
-                <TextField
-    fullWidth
-    variant="filled"
-    select
-    type="text"
-    value={dealerName || ""}
-    onChange={(e) => {
-      const selectedId = e.target.value; 
-      const selectedDealer = loadDealers.find(
-        (item) => item.Dealer_Name === selectedId 
-      );
-
-      if (selectedDealer) {
-        const dealerNameString = selectedDealer.Dealer_Name; // Get dealer name as string
-        setDealername(dealerNameString); // Update state with string
-     
-        handleInputChange(rows[0].id, 'Dealer_Name', dealerNameString); // Pass the string value
-      } else {
-        
-      }
-    }}
-    sx={{ gridColumn: "span 4" }}
-    SelectProps={{ native: true }}
-    InputProps={{ sx: { height: '40px' } }}
-  >
-    <option value="">Select</option>
-    {loadDealers.map((item) => (
-      <option key={item.id} value={item.Dealer_Name}> {/* Use Dealer_Name as value */}
-        {item.Dealer_Name}
-      </option>
-    ))}
-  </TextField>
+               <TextField
+                               fullWidth
+                               variant="filled"
+                               select
+                               type="text"
+                               value={dealerName} 
+                               onChange={(e)=>{
+                                 const inputs=e.target.value
+                                 setDealername(inputs)
+                                 handleInputChange(rows[0].id,'Dealer_Name',inputs)}} 
+                               sx={{ gridColumn: "span 4" }}
+                               SelectProps={{ native: true }}
+                               InputProps={{sx:{height:'40px'}}}
+                             >
+                             <option value=" " >select</option>
+                             { loadDealers && loadDealers.length > 0 ? (loadDealers.map((item) => (
+                             <option key={item.id} value={item.id}>
+                               {item.Dealer_Name}
+                             </option>
+                           ))):(<option value="No Data">No Data</option>)}
+                             </TextField>
               </Box> 
               </Box>
               </Box>  

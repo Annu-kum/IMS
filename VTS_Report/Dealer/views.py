@@ -48,7 +48,7 @@ class Getdealersviewset(SessionYearMixin, generics.ListAPIView):
         serializer = DealerSerializers(queryset, many=True, context={'request': request})
         return Response(serializer.data, status=200)
 
-class GetDealerViewset(SessionYearMixin,generics.ListAPIView):
+class GetAllDealerViewset(SessionYearMixin,generics.ListAPIView):
     queryset=Dealersmodel.objects.all().order_by('Dealer_Name')
     serializer_class=DealerSerializers
     permission_classes=[IsAuthenticated]
@@ -56,6 +56,27 @@ class GetDealerViewset(SessionYearMixin,generics.ListAPIView):
     search_fields=['Dealer_Name']
     pagination_class=Paginations
 
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)    
+
+
+class GetDealerViewset(generics.ListAPIView):
+    queryset=Dealersmodel.objects.all().order_by('Dealer_Name')
+    serializer_class=DealerSerializers
+    permission_classes=[AllowAny]
+    filter_backends=[filters.SearchFilter]
+    search_fields=['Dealer_Name']
+    pagination_class=None
+
+ 
 class PostDealer(generics.CreateAPIView):
     queryset=Dealersmodel.objects.all().order_by('Dealer_Name')
     serializer_class=DealerSerializers

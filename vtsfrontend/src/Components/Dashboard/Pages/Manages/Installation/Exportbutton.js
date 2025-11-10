@@ -73,7 +73,7 @@ export default function ExportButton() {
               <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div" style={{fontFamily:'Arial',fontWeight:800,color:'#1B1A55'}}>
                 Install Device Entry
               </Typography>
-              <Button autoFocus color="inherit" onClick={handleClose} style={{fontFamily:'Arial',fontWeight:'bolder',color:'#233044'}}>
+              <Button  color="inherit" onClick={handleClose} style={{fontFamily:'Arial',fontWeight:'bolder',color:'#233044'}}>
                 close
               </Button>
             </Toolbar>

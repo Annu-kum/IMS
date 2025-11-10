@@ -160,12 +160,20 @@ const initialRow = {
  };
 
   const[loadDealers,setLoadealers]=useState([])
-  useEffect(() => {
-    api.get(`/dealer/getdealer/`,{headers})
-    .then((response) => {
-      setLoadealers(response.data.results);
-    });
-  }, []);
+useEffect(() => {
+  const fetchDealers = async () => {
+    try {
+      const response = await api.get(`/dealer/getdealer/`, { headers });
+      const dealers = response.data.results || response.data;
+      setLoadealers(dealers || []);
+    } catch (error) {
+      console.error("Error fetching dealers:", error);
+    }
+  };
+
+  fetchDealers();
+}, []);
+
 
   const handleonLoad=()=>{
     api.get(`/millers/getmillers/${mlID}/`,{headers})
@@ -440,11 +448,11 @@ return (
                 InputProps={{sx:{height:'40px'}}}
               >
               <option value=" " >select</option>
-              {  loadDealers.map((item) => (
+              { loadDealers && loadDealers.length > 0 ? (loadDealers.map((item) => (
               <option key={item.id} value={item.id}>
                 {item.Dealer_Name}
               </option>
-            ))}
+            ))):(<option value="No Data">No Data</option>)}
               </TextField>
               </Box> 
               </Box>

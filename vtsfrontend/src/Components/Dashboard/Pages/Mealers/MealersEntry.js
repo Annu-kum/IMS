@@ -86,7 +86,7 @@ const initialRow = {
     pageChange(newPage)
   }
   const handleRowsPerPage =(e)=>{
-    rowperpagechange(+e.target.value)
+    rowperpagechange(parseInt(e.target.value))
     pageChange(0)
   }
 
@@ -106,13 +106,19 @@ const dialogbox=()=>{
 
 //Get data form dealers table.
 const getData = async ()=>{
-  const response = await api.get(`/millers/getmillerss/`,{headers})
+  const response = await api.get(`/millers/getmillerss/`,{
+    params:{
+            page: page + 1,         // DRF page starts at 1, not 0
+        page_size: rowsPerPage, // control items per page
+    search:search
+    },
+    headers})
   setmlDetails(response.data.results)
   setDatacount(response.data.count)
  }
 useEffect(()=>{
   getData()
-},[])
+},[page, rowsPerPage, search])
 
   //post dealer data
  const handleSubmit=(event)=>{
@@ -227,49 +233,9 @@ const refreshBtn=()=>{
    getData()
 }
 
-function pdfs(){
-  const doc=new jspdf({orientation:'portrait'})
-  doc.text('Millers Detail',12,8)
-  doc.autoTable({
-    theme:'grid',
-      columns:[
-        {header:'Miller_Transporter_Id',dataKey:'MILLER_TRANSPORTER_ID'},
-        {header:'Miller_Name',dataKey:'MILLER_NAME'},
-        {header:'Contact No',dataKey:'ContactNo'},
-        {header:'district',dataKey:'district'},
-      ],
-
-  
-    tableLineWidth: 0,
-    alignItems:'center',
-    pageSize:'A0',
-    cellWidth: 8,
-    body: rowsData,
-
-    headStyles: {
-      fontSize: 8, // adjust font size to fit the width
-      halign: 'center', // center the header text
-      margin: { top: 1, },  
-    
-      lineColor: [0, 0, 0] // black border
-    },
-    theme: 'grid', // or 'triped' or 'plain'
-  });
-  doc.save('Millers Detali.pdf');
-}
 //Groups of buttons...
 const [anchorEl, setAnchorEl] = React.useState(null);
 const open = Boolean(anchorEl);
-const handleClick = (event) => {
-  setAnchorEl(event.currentTarget);
-};
-const handleClose = () => {
-  setAnchorEl(null);
-};
-
-
-
-
 
 return (
   <>
@@ -437,7 +403,7 @@ return (
        
        }}
       >
-        <CSVLink data={rowsData}  filename='Millers Data'  style={{textDecoration:'none',color:'#fff'}}>Export</CSVLink>
+        <CSVLink data={fetchMldetails}  filename='Millers Data'  style={{textDecoration:'none',color:'#fff'}}>Export</CSVLink>
       </Button>
       
         <Box ><Button 
@@ -488,9 +454,8 @@ return (
           </TableHead>
          
           <TableBody>
-            {stableSort(rowsData, getComparator(order, orderBy))
-              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map((row,index) => {
+            {
+              fetchMldetails.map((row,index) => {
                 return (
                   <TableRow hover role="checkbox" tabIndex={-1} key={row.id} style={index % 2 ? { background: "#e3ebf3" } : { background: "#fff" }}  align='center'>
                     {columns.map((column) => {

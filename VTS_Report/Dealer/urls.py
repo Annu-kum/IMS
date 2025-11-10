@@ -5,6 +5,7 @@ from rest_framework import routers
 router = routers.DefaultRouter()
 urlpatterns = [
      path('getdealer/',views.GetDealerViewset.as_view(),name='getdealer'),
+     path('getalldealer/',views.GetAllDealerViewset.as_view(),name='getalldealer'),
      path('Dealersbyid/<int:id>',views.Getdealersviewset.as_view(),name='dealerid'),
      path('postdealer/',views.PostDealer.as_view(),name='postdealer'),
      path('dealerdelete/<int:id>',views.deleteDealer.as_view(),name='deletedealer'),
