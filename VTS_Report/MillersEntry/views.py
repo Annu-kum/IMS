@@ -56,6 +56,18 @@ class GetAllMillersviewsets(SessionYearMixin,generics.ListAPIView):
     filter_backends=[filters.SearchFilter]
     search_fields=['MILLER_NAME']
     pagination_class=Paginations
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)       
+
 class postMillersviewset(SessionYearMixin,generics.CreateAPIView):
     queryset=MillersEntrymodel.objects.all().order_by('MILLER_NAME')
     serializer_class=MillerEntrySerializers

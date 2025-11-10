@@ -51,13 +51,13 @@ const initialRow = {
 
 
 
-  const [page,pageChange]=React.useState(0);
+  const [page,setPage]=React.useState(0);
   const[dealername,setDealername]=useState('')
   const[contact1,setcontact1]=useState('');
   const[contact2,setcontact2]=useState('')
   const[companyName,setcompanyName]=useState('');
   const[remark,setRemark]=useState('');
-  const[rowsPerPage,rowperpagechange]=React.useState(25);
+  const[rowsPerPage,setRowsPerPage]=React.useState(25);
   const isNonMobile = useMediaQuery("(min-width:600px)");
   const [value, setValue] = React.useState(1);
   const[search,setSearch]=React.useState('')
@@ -72,7 +72,7 @@ const initialRow = {
  const [openPopup, setOpenPopup] = useState(false)
  const  [openDialog,setOpenDialog] = useState(false)
  const [datacount,setDatacount]=React.useState(0)
-
+const [count, setCount] = useState(0);
  const token = localStorage.getItem('Token');
  const headers = {
    'content-type': 'application/json',
@@ -89,31 +89,28 @@ const dialogbox=()=>{
 setOpenDialog(true)
 }
  
- //page change...
- const handlechangepage=(event,newPage)=>{
-    pageChange(newPage)
-  }
-  const handleRowsPerPage =(e)=>{
-    rowperpagechange(+e.target.value)
-    pageChange(0)
-  }
 
+  const handleChange = (event, newValue) => {
+    setValue(newValue);
+  };
 
 
 //Get data form dealers table.
 const getData = async ()=>{
-  const response = await api.get(`/dealer/getdealer/`,
+  const response = await api.get(`/dealer/getalldealer/`,
      {
      params:{
+      page: page + 1,         // DRF page starts at 1, not 0
+        page_size: rowsPerPage, // control items per page
     search:search
   }, 
     headers})
   setfetchDealers(response.data.results)
-  setDatacount(response.data.count)
+  setCount(response.data.count);
  }
 useEffect(()=>{
   getData()
-},[search])
+},[page, rowsPerPage, search])
 
   //post dealer data
  const handleSubmit=(event)=>{
@@ -204,6 +201,24 @@ const [anchorEl, setAnchorEl] = React.useState(null);
 const open = Boolean(anchorEl);
 const handleClick = (event) => {
   setAnchorEl(event.currentTarget);
+};
+
+ //page change...
+//  const handlechangepage=(event,newPage)=>{
+//     pageChange(newPage)
+//   }
+//   const handleRowsPerPage =(e)=>{
+//     rowperpagechange(+e.target.value)
+//     pageChange(0)
+//   }
+
+const handleChangePage = (event, newPage) => {
+  setPage(newPage);
+};
+
+const handleChangeRowsPerPage = (event) => {
+  setRowsPerPage(parseInt(event.target.value, 10));
+  setPage(0);
 };
 
 return (
@@ -428,7 +443,7 @@ return (
           </TableHead>
           <TableBody >
           {
-            fetchDealer.slice(page*rowsPerPage,page*rowsPerPage+rowsPerPage).map((dealer,index) => {
+            fetchDealer.map((dealer,index) => {
             return(
             <TableRow key={dealer.id} style={index % 2 ? { background: "#e3ebf3" } : { background: "#fff" }}>
               <TableCell align='center' inputprops={{height:'2px'}}>
@@ -512,12 +527,12 @@ return (
       </TableContainer>
       <TablePagination
                    rowsPerPageOptions={[25,50,100,150,200]}
-                   rowsPerPage={rowsPerPage}
-                   page={page}
-                   count={datacount}
                    component="div"
-                   onPageChange={handlechangepage}
-                   onRowsPerPageChange={handleRowsPerPage}>
+              count={count} // total count from backend
+  rowsPerPage={rowsPerPage}
+  page={page}
+  onPageChange={handleChangePage}
+  onRowsPerPageChange={handleChangeRowsPerPage}>
       </TablePagination>
     </Box>
     {/* Row 3 */}
