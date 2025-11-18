@@ -3,7 +3,7 @@ from rest_framework import generics, status, filters
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny,IsAuthenticated
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser,FileUploadParser
-from .models import ReactivationModels
+from .models import ReactivationModels, ReactivationExtraLetterHead
 from .serializers import ReactivatepostSerializers,ReactivateSerializers,ReactivateUpdateSerializers
 from django.http import JsonResponse,HttpResponse
 from django.shortcuts import get_object_or_404
@@ -114,7 +114,7 @@ class GetReactiveurlviewset(generics.ListAPIView):
 
         # Return all installations with pagination
         return super().get(request, *args, **kwargs) 
-
+     
 
 class postReactivateviewset(generics.CreateAPIView):
     queryset = ReactivationModels.objects.all()
@@ -189,41 +189,51 @@ class UpdatereactivateLetterHeadViewSets(generics.UpdateAPIView):
     permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser, JSONParser, FileUploadParser]
     lookup_field = 'id'
-
+      
     def patch(self, request, *args, **kwargs):
-        id = kwargs.get(self.lookup_field)
+        id = kwargs.get('id')
         if not id:
-            return Response({'error': 'Transporter ID not provided'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'ID not provided'}, status=400)
 
-        reactivations = ReactivationModels.objects.filter(id=id)
-        if not reactivations.exists():
-            return Response({'error': 'Reactivation not found'}, status=status.HTTP_404_NOT_FOUND)
+        try:
+            reactivation = ReactivationModels.objects.get(id=id)
+        except ReactivationModels.DoesNotExist:
+            return Response({'error': 'Reactivation not found'}, status=404)
 
-        if reactivations.count() > 1:
-         
-            for reactivation in reactivations:
-                serializer = self.get_serializer(reactivation, data=request.data, partial=True)
-                if serializer.is_valid():  
-                    if 'Reactivation_letterHead' in request.data:
-                        serializer.validated_data['Reactivation_letterHead'] = request.data['Reactivation_letterHead']
-                        try:
-                            serializer.save()
-                        except Exception as e:
-                            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-            return Response({'message': 'All reactivation with MILLER_TRANSPORTER_ID updated successfully'}, status=status.HTTP_200_OK)
-        reactivation = reactivations.first()
-        # Only update the Installation_letterHead field
-        serializer = self.get_serializer(reactivation, data=request.data, partial=True)
-        if serializer.is_valid():  # Call is_valid() first
-            if 'Reactivation_letterHead' in request.data:
-                serializer.validated_data['Reactivation_letterHead'] = request.data['Reactivation_letterHead']
-                try:
-                    serializer.save()
-                except Exception as e:
-                    return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-                return Response(serializer.data, status=status.HTTP_200_OK)
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # 1 UPDATE MAIN LETTERHEAD ONLY
+        if 'Reactivation_letterHead' in request.FILES:
+            main_file = request.FILES['Reactivation_letterHead']
+            reactivation.Reactivation_letterHead = main_file
+            reactivation.save()
+            return Response(
+                {"message": "Main letterhead updated successfully"},
+                status=200
+            )
+
+        # 2 UPDATE EXTRA LETTERHEADS ONLY
+        if 'extra_letterheads' in request.FILES:
+            extra_files = request.FILES.getlist('extra_letterheads')
+
+            # Remove old extras
+            reactivation.extra_letterheads.all().delete()
+
+            # Add new extras
+            for file in extra_files:
+                ReactivationExtraLetterHead.objects.create(
+                    reactivation=reactivation,
+                    file=file
+                )
+
+            return Response(
+                {"message": "Extra letterhead updated successfully"},
+                status=200
+            )
+
+        return Response(
+            {"error": "No valid file field found. Use 'Reactivation_letterHead' or 'extra_letterheads'."},
+            status=400
+        )
 
 
 def get_file_url(request, id):

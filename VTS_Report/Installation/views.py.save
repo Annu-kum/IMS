@@ -438,3 +438,310 @@ class BulkUpdateLetterHeadView(APIView):
             }, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+Perfect Annu 👏
+
+You already have an excellent setup — `Installation_letterHead` for the **main letterhead** and a related model `InstallationExtraLetterHead` for **extra letterheads**.
+
+Now you want to **update both** — the main letterhead **and** the extra ones — from the same endpoint (`UpdateLetterHeadViewSets`), right?
+
+Let’s do this **without breaking** your current working logic.
+
+---
+
+## ✅ GOAL
+
+When you send a `PATCH` request with:
+
+* `Installation_letterHead` → updates the main file.
+* `extra_letterheads` (multiple files) → replaces or appends extra files in the related model `InstallationExtraLetterHead`.
+
+---
+
+## ✅ Final Updated View
+
+Here’s your improved `UpdateLetterHeadViewSets` — it updates both:
+
+```python
+class UpdateLetterHeadViewSets(SessionYearMixin, generics.UpdateAPIView):
+    queryset = InstallatonModels.objects.all().order_by('MILLER_NAME')
+    serializer_class = InstallSerializers
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser, JSONParser, FileUploadParser]
+    lookup_field = 'id'
+
+    def patch(self, request, *args, **kwargs):
+        id = kwargs.get(self.lookup_field)
+        if not id:
+            return Response({'error': 'Transporter ID not provided'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            installation = InstallatonModels.objects.get(id=id)
+        except InstallatonModels.DoesNotExist:
+            return Response({'error': 'Installation not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = self.get_serializer(installation, data=request.data, partial=True)
+
+        if serializer.is_valid():
+            # ✅ Update main letterhead if provided
+            if 'Installation_letterHead' in request.FILES:
+                installation.Installation_letterHead = request.FILES['Installation_letterHead']
+                installation.save()
+
+            # ✅ Handle extra letterheads (multiple files)
+            extra_files = request.FILES.getlist('extra_letterheads')
+            if extra_files:
+                # Option 1: Append new files (recommended)
+                for f in extra_files:
+                    InstallationExtraLetterHead.objects.create(
+                        installation=installation,
+                        file=f
+                    )
+
+                # Option 2 (optional): Replace existing extras
+                # installation.extra_letterheads.all().delete()
+                # for f in extra_files:
+                #     InstallationExtraLetterHead.objects.create(installation=installation, file=f)
+
+            serializer = self.get_serializer(installation)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+```
+
+---
+
+## ✅ What This Does
+
+| Action                                            | Result                                                           |
+| ------------------------------------------------- | ---------------------------------------------------------------- |
+| `PATCH` with `Installation_letterHead`            | Replaces main letterhead.                                        |
+| `PATCH` with `extra_letterheads` (multiple files) | Adds each file as a new record in `InstallationExtraLetterHead`. |
+| Both together                                     | Updates both fields in one request.                              |
+| No files sent                                     | Keeps existing ones intact.                                      |
+
+---
+
+## 🧠 Example Request (Postman or Axios)
+
+### ✅ Form Data Example
+
+```
+PATCH /installation/updateletterhead/123/
+
+Content-Type: multipart/form-data
+
+Installation_letterHead: main_letter.pdf
+extra_letterheads: extra1.pdf
+extra_letterheads: extra2.pdf
+```
+
+This will:
+
+* Replace the main file with `main_letter.pdf`.
+* Add two new rows in `InstallationExtraLetterHead`.
+
+---
+
+## ✅ Updated Serializer Context
+
+You already have:
+
+```python
+extra_letterheads = serializers.SerializerMethodField()
+```
+
+So no change needed — it will automatically return all related extra letterhead URLs.
+
+Example Response:
+
+```json
+{
+  "id": 123,
+  "MILLER_NAME": "ABC Mill",
+  "Installation_letterHead": "https://your-bucket/installation/main.pdf",
+  "extra_letterheads": [
+    "https://your-bucket/installation/extra_letterheads/extra1.pdf",
+    "https://your-bucket/installation/extra_letterheads/extra2.pdf"
+  ]
+}
+```
+
+---
+
+## ✅ Optional: Replace Instead of Append
+
+If you want to **replace all previous extra files** when new ones are uploaded,
+uncomment these two lines in the above view:
+
+```python
+installation.extra_letterheads.all().delete()
+for f in extra_files:
+    InstallationExtraLetterHead.objects.create(installation=installation, file=f)
+```
+
+---
+
+Would you like this same `extra_letterheads` update feature for your **Deactivation and Reactivation** modules too (to keep consistency across all three)?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Alright Annu, **clear requirement understood** ✔️
+
+### **You want this behavior in UpdateLetterHeadViewSets:**
+
+1. **If user uploads `Installation_letterHead` → update ONLY main file**
+2. **If user uploads `extra_letterheads` → update ONLY extra files**
+3. **User should NOT be forced to update both together**
+4. **Extra letterhead update should REPLACE previous extras** (or append, your choice)
+
+---
+
+# ✅ FINAL — CLEAN & CORRECT UpdateLetterHeadViewSets
+
+This version fully supports:
+
+* Update **only main letterhead**
+* Update **only extra letterheads**
+* Update **both separately**
+* Avoids conflict
+* Uses `request.FILES` correctly
+
+---
+
+```python
+class UpdateLetterHeadViewSets(SessionYearMixin, generics.UpdateAPIView):
+    queryset = InstallatonModels.objects.all()
+    serializer_class = InstallSerializers
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+    lookup_field = 'id'
+
+    def patch(self, request, *args, **kwargs):
+        id = kwargs.get('id')
+        if not id:
+            return Response({'error': 'ID not provided'}, status=400)
+
+        try:
+            installation = InstallatonModels.objects.get(id=id)
+        except InstallatonModels.DoesNotExist:
+            return Response({'error': 'Installation not found'}, status=404)
+
+        # -----------------------------
+        # 1️⃣ UPDATE MAIN LETTERHEAD ONLY
+        # -----------------------------
+        if 'Installation_letterHead' in request.FILES:
+            main_file = request.FILES['Installation_letterHead']
+            installation.Installation_letterHead = main_file
+            installation.save()
+            return Response(
+                {"message": "Main letter head updated successfully"},
+                status=200
+            )
+
+        # -----------------------------
+        # 2️⃣ UPDATE EXTRA LETTERHEADS ONLY
+        # -----------------------------
+        if 'extra_letterheads' in request.FILES:
+            extra_files = request.FILES.getlist('extra_letterheads')
+
+            # Remove old extras
+            installation.extra_letterheads.all().delete()
+
+            # Add new extras
+            for file in extra_files:
+                InstallationExtraLetterHead.objects.create(
+                    installation=installation,
+                    file=file
+                )
+
+            return Response(
+                {"message": "Extra letter heads updated successfully"},
+                status=200
+            )
+
+        return Response(
+            {"error": "No valid file field found. Use 'Installation_letterHead' or 'extra_letterheads'."},
+            status=400
+        )
+```
+
+---
+
+# ✅ HOW IT WORKS
+
+## **✔️ Update ONLY Main Letterhead**
+
+Send this in Postman / Frontend:
+
+```
+Installation_letterHead: new_main.pdf
+```
+
+👉 Only this is updated
+👉 Extra letterheads remain same
+
+---
+
+## **✔️ Update ONLY Extra Letterheads**
+
+Send:
+
+```
+extra_letterheads: extra1.pdf
+extra_letterheads: extra2.pdf
+```
+
+👉 Old extra files deleted
+👉 New extras saved
+👉 Main letterhead stays SAME
+
+---
+
+## **✔️ Does NOT Update Both Together**
+
+Even if both are sent accidentally, the logic updates only one:
+
+Priority:
+
+1️⃣ Main file
+2️⃣ Extra files
+
+Because both are handled in separate `if` blocks.
+
+---
+
+# 🟢 serializer, model, frontend — NO CHANGES REQUIRED
+
+Your serializer and model setup is already perfect.
+
+This **adds clean, safe file update logic**.
+
+---
+
+# ⭐ Want to allow APPENDING extra files instead of replacing?
+
+I can give you that version too.
+
+Just ask:
+**“Chetu, extra files should append, not replace”**

@@ -4,127 +4,119 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import api from '../../../../account/BaseApi';
 
-
-
-
 export default function Update_letterHeads(props) {
   const { openPopup, setOpenPopup, setids } = props;
-  const [letterHeadFile, setLetterHeadFile] = useState(null);
-  const isNonMobile = useMediaQuery("(min-width:600px)");
+  const [mainLetterHead, setMainLetterHead] = useState(null);
+  const [extraLetterHeads, setExtraLetterHeads] = useState([]);  
   const token = localStorage.getItem('Token');
-  
-  
 
-  
-  const handleFileChange = (e) => {
-    setLetterHeadFile(e.target.files[0]);
+  const handleMainFileChange = (e) => {
+    setMainLetterHead(e.target.files[0]);
   };
+
+  const handleExtraFileChange = (e) => {
+    setExtraLetterHeads(Array.from(e.target.files)); 
+  };
+
+
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+
     const formData = new FormData();
-    formData.append('Installation_letterHead', letterHeadFile);
+
+    // 1If updating MAIN letterhead
+    if (mainLetterHead) {
+      formData.append("Installation_letterHead", mainLetterHead);
+    }
+
+  
+    // 2 If updating EXTRA letterheads 
+    if (extraLetterHeads.length > 0) {
+      extraLetterHeads.forEach((file) => {
+        formData.append("extra_letterheads", file);
+      });
+    }
+
+    if (!mainLetterHead && extraLetterHeads.length === 0) {
+      toast.error("Please select at least one file!");
+      return;
+    }
 
     try {
-      const response = await api.patch(`/installation/update-installation/${setids}/`, formData, {
+      await api.patch(`/installation/update-installation/${setids}/`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           'Authorization': `Token ${token}`,
         },
-        withCredentials: false
       });
-      toast.success('Letter head updated successfully!');
-      toast.error(null);
+
+      toast.success('Letter Head Updated Successfully!');
+      setOpenPopup(false);
+      setMainLetterHead(null);
+      setExtraLetterHeads([]);
+
     } catch (error) {
-      toast.error(error.response?.data?.error || 'Error updating letterhead');
-      toast.success(null);
+      toast.error(error.response?.data?.error || "Error updating files");
     }
   };
 
-  const handleClose = () => {
-    setOpenPopup(false);
-    
-  };
-
   return (
-    <React.Fragment>
-      <Dialog
-        open={openPopup}
-        onClose={handleClose}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
-      >
-        <DialogTitle id="alert-dialog-title" style={{ background: '#E1E4EF', fontSize: '15px', fontWeight: 'bold', color: '#1B1A55' }}>
-          {"Update LetterHead"}
-        </DialogTitle>
-        <DialogContent style={{ background: '#E1E4EF' }}>
-          <Box backgroundColor='#E1E4EF' borderRadius={'1%'}>
-            <Box display="flex" justifyContent="space-between" alignItems="center"></Box>
-            <Box backgroundColor='#E1E4EF' padding={'1rem'} m={'0px 0px 1px'} borderRadius={'1%'}>
-              <Box
-                display="grid"
-                gap="12px"
-                gridTemplateColumns="repeat(1, minmax(0, 1fr))"
-                sx={{ "& > div": { gridColumn: isNonMobile ? undefined : "span 2" } }}
-              >
-               
-                <Box>
-                  <label style={{ fontWeight: 'bolder' }}>Upload Letterhead</label>
-                 
-                      <input type='file' accept='.pdf,.png,.jpeg,jpg' name='file' onChange={handleFileChange} />
-                  
-                
-                  
-              
-                </Box>
-              </Box>
-            </Box>
+    <Dialog open={openPopup} onClose={() => setOpenPopup(false)}>
+      <DialogTitle style={{ background: '#E1E4EF', fontSize: '15px', fontWeight: 'bold', color: '#1B1A55' }}>
+        Update LetterHead
+      </DialogTitle>
+
+      <DialogContent style={{ background: '#E1E4EF' }}>
+        <Box padding="1rem">
+
+          {/* MAIN LETTERHEAD */}
+          <Box mb={2}>
+            <label style={{ fontWeight: 'bold' }}>Main LetterHead</label><br />
+            <input
+              type="file"
+              accept=".pdf,.png,.jpeg,.jpg"
+              onChange={handleMainFileChange}
+            />
           </Box>
-          <DialogActions style={{ background: '#E1E4EF' }}>
-            <Button
-              sx={{
-                height: '7vh',
-                width: '40px',
-                background: `linear-gradient(${'#1B1A55'},${'#9290C3'})`,
-                '&:hover': {
-                  background: '#9290C3',
-                  color: '#fff',
-                  fontSize: "12px",
-                  fontWeight: "bold",
-                },
-                color: '#fff',
-                fontSize: "12px",
-                fontWeight: "bold",
-                margin: '2px',
-              }}
-              onClick={handleSubmit}
-            >
-              Update
-            </Button>
-            <Button
-              onClick={handleClose}
-              autoFocus
-              sx={{
-                height: '7vh',
-                width: '40px',
-                background: `linear-gradient(${'#1B1A55'},${'#9290C3'})`,
-                '&:hover': {
-                  background: '#9290C3',
-                  color: '#fff',
-                  fontSize: "12px",
-                  fontWeight: "bold",
-                },
-                color: '#fff',
-                fontSize: "12px",
-                fontWeight: "bold",
-                margin: '2px',
-              }}
-            >
-              Cancel
-            </Button>
-          </DialogActions>
-        </DialogContent>
-      </Dialog>
-    </React.Fragment>
+
+          {/* EXTRA LETTERHEADS */}
+          <Box mb={2}>
+            <label style={{ fontWeight: 'bold' }}>Extra LetterHeads</label><br />
+            <input
+              type="file"
+              multiple
+              accept=".pdf,.png,.jpeg,.jpg"
+              onChange={handleExtraFileChange}
+            />
+          </Box>
+
+        </Box>
+      </DialogContent>
+
+      <DialogActions style={{ background: '#E1E4EF' }}>
+        <Button
+          sx={{
+            background: `linear-gradient(#1B1A55,#9290C3)`,
+            color: '#fff', fontWeight: 'bold',
+            '&:hover': { background: '#9290C3' },
+          }}
+          onClick={handleSubmit}
+        >
+          Update
+        </Button>
+
+        <Button
+          sx={{
+            background: `linear-gradient(#1B1A55,#9290C3)`,
+            color: '#fff', fontWeight: 'bold',
+            '&:hover': { background: '#9290C3' },
+          }}
+          onClick={() => setOpenPopup(false)}
+        >
+          Cancel
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
 }

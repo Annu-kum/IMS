@@ -5,7 +5,7 @@ from rest_framework import generics, status, filters
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny,IsAuthenticated
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser,FileUploadParser
-from .models import InstallatonModels
+from .models import InstallatonModels,InstallationExtraLetterHead
 from .serializers import InstallSerializers,InstallpostSerializers,InstallupdatesSerializers
 from django.http import JsonResponse,HttpResponse
 from django.shortcuts import get_object_or_404
@@ -190,48 +190,99 @@ class updateInstallviewsets(SessionYearMixin,generics.UpdateAPIView):
 
 
 
-class UpdateLetterHeadViewSets(SessionYearMixin,generics.UpdateAPIView):
-    queryset = InstallatonModels.objects.all().order_by('MILLER_NAME')
+# class UpdateLetterHeadViewSets(SessionYearMixin,generics.UpdateAPIView):
+#     queryset = InstallatonModels.objects.all().order_by('MILLER_NAME')
+#     serializer_class = InstallSerializers
+#     permission_classes = [IsAuthenticated]
+#     parser_classes = [MultiPartParser, FormParser, JSONParser, FileUploadParser]
+#     lookup_field = 'id'
+
+#     def patch(self, request, *args, **kwargs):
+#         id = kwargs.get(self.lookup_field)
+#         if not id:
+#             return Response({'error': 'Transporter ID not provided'}, status=status.HTTP_400_BAD_REQUEST)
+
+#         installations = InstallatonModels.objects.filter(id=id)
+#         if not installations.exists():
+#             return Response({'error': 'Installation not found'}, status=status.HTTP_404_NOT_FOUND)
+
+#         if installations.count() > 1:
+#             # Update all installations with the same MILLER_TRANSPORTER_ID
+#             for installation in installations:
+#                 serializer = self.get_serializer(installation, data=request.data, partial=True)
+#                 if serializer.is_valid():  # Call is_valid() first
+#                     if 'Installation_letterHead' in request.data:
+#                         serializer.validated_data['Installation_letterHead'] = request.data['Installation_letterHead']
+#                         try:
+#                             serializer.save()
+#                         except Exception as e:
+#                             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+#             return Response({'message': 'All installations with MILLER_TRANSPORTER_ID updated successfully'}, status=status.HTTP_200_OK)
+
+#         installation = installations.first()
+#         # Only update the Installation_letterHead field
+#         serializer = self.get_serializer(installation, data=request.data, partial=True)
+#         if serializer.is_valid():  # Call is_valid() first
+#             if 'Installation_letterHead' in request.data:
+#                 serializer.validated_data['Installation_letterHead'] = request.data['Installation_letterHead']
+#                 try:
+#                     serializer.save()
+#                 except Exception as e:
+#                     return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+#                 return Response(serializer.data, status=status.HTTP_200_OK)
+
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+class UpdateLetterHeadViewSets(SessionYearMixin, generics.UpdateAPIView):
+    queryset = InstallatonModels.objects.all()
     serializer_class = InstallSerializers
     permission_classes = [IsAuthenticated]
-    parser_classes = [MultiPartParser, FormParser, JSONParser, FileUploadParser]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
     lookup_field = 'id'
 
     def patch(self, request, *args, **kwargs):
-        id = kwargs.get(self.lookup_field)
+        id = kwargs.get('id')
         if not id:
-            return Response({'error': 'Transporter ID not provided'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'ID not provided'}, status=400)
 
-        installations = InstallatonModels.objects.filter(id=id)
-        if not installations.exists():
-            return Response({'error': 'Installation not found'}, status=status.HTTP_404_NOT_FOUND)
+        try:
+            installation = InstallatonModels.objects.get(id=id)
+        except InstallatonModels.DoesNotExist:
+            return Response({'error': 'Installation not found'}, status=404)
 
-        if installations.count() > 1:
-            # Update all installations with the same MILLER_TRANSPORTER_ID
-            for installation in installations:
-                serializer = self.get_serializer(installation, data=request.data, partial=True)
-                if serializer.is_valid():  # Call is_valid() first
-                    if 'Installation_letterHead' in request.data:
-                        serializer.validated_data['Installation_letterHead'] = request.data['Installation_letterHead']
-                        try:
-                            serializer.save()
-                        except Exception as e:
-                            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-            return Response({'message': 'All installations with MILLER_TRANSPORTER_ID updated successfully'}, status=status.HTTP_200_OK)
 
-        installation = installations.first()
-        # Only update the Installation_letterHead field
-        serializer = self.get_serializer(installation, data=request.data, partial=True)
-        if serializer.is_valid():  # Call is_valid() first
-            if 'Installation_letterHead' in request.data:
-                serializer.validated_data['Installation_letterHead'] = request.data['Installation_letterHead']
-                try:
-                    serializer.save()
-                except Exception as e:
-                    return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-                return Response(serializer.data, status=status.HTTP_200_OK)
+        # 1 UPDATE MAIN LETTERHEAD ONLY
+        if 'Installation_letterHead' in request.FILES:
+            main_file = request.FILES['Installation_letterHead']
+            installation.Installation_letterHead = main_file
+            installation.save()
+            return Response(
+                {"message": "Main letter head updated successfully"},
+                status=200
+            )
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # 2 UPDATE EXTRA LETTERHEADS ONLY
+        if 'extra_letterheads' in request.FILES:
+            extra_files = request.FILES.getlist('extra_letterheads')
+                      
+            # Remove old extras
+            installation.extra_letterheads.all().delete()
+
+            # Add new extras
+            for file in extra_files:
+                InstallationExtraLetterHead.objects.create(
+                    installation=installation,
+                    file=file
+                )
+
+            return Response(
+                {"message": "Extra letter heads updated successfully"},
+                status=200
+            )
+
+        return Response(
+            {"error": "No valid file field found. Use 'Installation_letterHead' or 'extra_letterheads'."},
+            status=400
+        )
 
 def get_file_url(request, id):
     installer = get_object_or_404(InstallatonModels, id=id)
