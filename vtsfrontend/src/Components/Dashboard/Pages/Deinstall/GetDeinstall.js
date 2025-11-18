@@ -100,85 +100,70 @@ const InputTable = () => {
   const [deactivationDate, setDeactivationDate] = useState(""); // new date field
   const [extraFiles, setextraFiles] = useState([]); // <-- add this line
 
-  const fetchInstallations = async () => {
-    setData([]);
-  
-    if (!millerId) {
-      toast.error("Please enter a Miller ID.");
+ const fetchInstallations = async () => {
+  setData([]);
+
+  if (!millerId) {
+    toast.error("Please enter a Miller ID.");
+    return;
+  }
+
+  try {
+    let installResponse;
+    let deactivateResponse = { data: [] };
+
+    if (selectedOption === "installation") {
+      installResponse = await api.get(`/installation/getinstaller/${millerId}/`, { headers });
+
+      try {
+        deactivateResponse = await api.get(`/deactivation/getdeactivate/${millerId}/`, { headers });
+      } catch (deactError) {
+        if (deactError.response?.status === 404) {
+          deactivateResponse.data = []; // No records found
+        } else {
+          throw deactError;
+        }
+      }
+
+    } else if (selectedOption === "reactivation") {
+      installResponse = await api.get(`/reactivation/getReactivate/${millerId}/`, { headers });
+
+      try {
+        deactivateResponse = await api.get(`/deactivation/getdeactivate/${millerId}/`, { headers });
+      } catch (deactError) {
+        if (deactError.response?.status === 404) {
+          deactivateResponse.data = [];
+        } else {
+          throw deactError;
+        }
+      }
+    } else {
+      toast.error("Please select an option.");
       return;
     }
-  
-    try {
-      let installResponse;
-      let deactivateResponse = { data: [] };
-  
-      // Fetch installation or reactivation data
-      if (selectedOption === "installation") {
-        installResponse = api.get(
-          `/installation/getinstaller/${millerId}/`,
-          { headers }
-        );
-  
-        // Try deactivation fetch separately
-        try {
-          deactivateResponse = await api.get(
-            `/deactivation/getdeactivate/${millerId}/`,
-            { headers }
-          );
-        } catch (deactError) {
-          if (deactError.response?.status === 404) {
-            // No deactivation data found, which is okay
-            deactivateResponse.data = [];
-          } else {
-            throw deactError; // rethrow other errors
-          }
-        }
-  
-      } else if (selectedOption === "reactivation") {
-        installResponse = await api.get(
-          `/reactivation/getReactivate/${millerId}/`,
-          { headers }
-        );
 
-         // Try deactivation fetch separately
-         try {
-          deactivateResponse = await api.get(
-            `/deactivation/getdeactivate/${millerId}/`,
-            { headers }
-          );
-        } catch (deactError) {
-          if (deactError.response?.status === 404) {
-            // No deactivation data found, which is okay
-            deactivateResponse.data = [];
-          } else {
-            throw deactError; // rethrow other errors
-          }
-        }
-      } else {
-        toast.error("Please select an option.");
-        return;
-      }
-  
-      const installations = Array.isArray(installResponse.data)
-        ? installResponse.data
-        : [installResponse.data];
-  
-      const deactivatedEntityIds = new Set(
-        deactivateResponse.data.map((item) => item.Entity_id)
-      );
-  
-      const updatedData = installations.map((install) => ({
-        ...install,
-        isDeactivated: deactivatedEntityIds.has(install.Entity_id),
-      }));
-  
-      setData(updatedData);
-    } catch (error) {
-      console.error(error);
-      toast.error("Error fetching data. Check Miller ID.");
-    }
-  };
-  
+    const installations = Array.isArray(installResponse.data)
+      ? installResponse.data
+      : [installResponse.data];
+
+    const deactivatedEntityIds = new Set(
+      Array.isArray(deactivateResponse.data)
+        ? deactivateResponse.data.map((item) => item.Entity_id)
+        : []
+    );
+
+    const updatedData = installations.map((install) => ({
+      ...install,
+      isDeactivated: deactivatedEntityIds.has(install.Entity_id),
+    }));
+
+    setData(updatedData);
+  } catch (error) {
+    console.error(error);
+    toast.error("Error fetching data. Check Miller ID or server connection.");
+  }
+};
+ 
   
 
 

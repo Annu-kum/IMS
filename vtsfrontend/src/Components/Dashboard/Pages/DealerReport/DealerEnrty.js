@@ -90,10 +90,6 @@ setOpenDialog(true)
 }
  
 
-  const handleChange = (event, newValue) => {
-    setValue(newValue);
-  };
-
 
 //Get data form dealers table.
 const getData = async ()=>{
@@ -203,14 +199,6 @@ const handleClick = (event) => {
   setAnchorEl(event.currentTarget);
 };
 
- //page change...
-//  const handlechangepage=(event,newPage)=>{
-//     pageChange(newPage)
-//   }
-//   const handleRowsPerPage =(e)=>{
-//     rowperpagechange(+e.target.value)
-//     pageChange(0)
-//   }
 
 const handleChangePage = (event, newPage) => {
   setPage(newPage);
