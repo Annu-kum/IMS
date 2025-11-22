@@ -6,7 +6,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/DeleteOutlined';
 import SaveIcon from '@mui/icons-material/Save';
 import CancelIcon from '@mui/icons-material/Close';
-import { Hidden, IconButton, TextField } from '@mui/material';
+import { Hidden, IconButton, TextField,Select,MenuItem } from '@mui/material';
 import { Typography } from '@mui/material';
 import { useTheme } from '@mui/material';
 import DownloadIcon from '@mui/icons-material/Download';
@@ -72,8 +72,16 @@ export default function DataGridDemo() {
         headers});
          const data = response.data.results
          const dataWithImeiFlag = markDuplicateGPSIMEI(data);
-        setRows(dataWithImeiFlag);
+         const normalized = dataWithImeiFlag.map(item => ({
+          ...item,
+          extra_letterheads: item.extra_letterheads || []
+        }));
+
+        setRows(normalized);
+        console.log("ROW:", rows[1]);
+        // setRows(dataWithImeiFlag);
         setRowCount(response.data.count); 
+        console.log("fetched data",data);
       } catch (error) {
         console.error('Error fetching data:', error);
       } finally {
@@ -154,7 +162,7 @@ const deletePopups = id =>{
       setRows(rows.filter((row) => row.id !== id));
     }
   };
-
+   
   
 
   const processRowUpdate = async (newRow) => {
@@ -184,7 +192,9 @@ const deletePopups = id =>{
           },
         }
       );
-      setRows((prevRows) => prevRows.map((row) => (row.id === newRow.id ? updatedRow : row)));
+      const serverRow = response.data;
+      // setRows((prevRows) => prevRows.map((row) => (row.id === newRow.id ? updatedRow : row)));
+      setRows((prevRows) =>prevRows.map((row) => (row.id === newRow.id ? serverRow : row)));
       // toast.success('Row updated successfully!');
       toast.success("Data updated successfully ",{
         theme:"light",
@@ -353,36 +363,46 @@ const updateColumn = {
       </IconButton>
     ),
   },
-    {
+{
   field: 'extra_letterheads',
   headerName: 'Extra LetterHeads',
   align: 'center',
   headerAlign: 'center',
-  width: 100,
   headerClassName: 'head',
+  width: 100,
   renderCell: (params) => {
     const files = params.row.extra_letterheads || [];
-    if (files.length === 0) return <span>--</span>;
+
+    if (!files.length) return <span>--</span>;
 
     return (
-      <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+      <Select
+        size="small"
+        displayEmpty
+        sx={{
+          fontSize: "12px",
+          width: 100,
+          height: 35,
+          background: "#fff",
+          border: "none",
+          boxShadow: "none",
+        }}
+      > <MenuItem>Files</MenuItem>
         {files.map((url, index) => (
-          <Box key={index} sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, mb: '4px' }}>
-
-            <a
-              href={url}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ fontSize: '14px', color: 'blue', textDecoration: 'none' }}
-            >
-              File {index + 1}
-            </a>
-          </Box>
+          <MenuItem
+            key={index}
+            value={index}
+            onClick={() => window.open(url, "_blank")}
+            sx={{ fontSize: "12px" }}
+          >
+            File {index + 1}
+          </MenuItem>
         ))}
-      </Box>
+      </Select>
     );
-  },
+  }
 },
+
   
  
   { field: 'Replace_DeviceIMEI_NO', headerAlign: 'center', align: 'center', headerName: 'Replace Device IMEI No', width: 150, editable: true, headerClassName: 'head' },
@@ -444,36 +464,46 @@ const adminsMaincolumn = [
       </IconButton>
     ),
   },
-  {
+{
   field: 'extra_letterheads',
   headerName: 'Extra LetterHeads',
   align: 'center',
   headerAlign: 'center',
-  width: 100,
   headerClassName: 'head',
+  width: 100,
   renderCell: (params) => {
     const files = params.row.extra_letterheads || [];
-    if (files.length === 0) return <span>--</span>;
+
+    if (!files.length) return <span>--</span>;
 
     return (
-      <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+      <Select
+        size="small"
+        displayEmpty
+        sx={{
+          fontSize: "12px",
+          width: 100,
+          height: 35,
+          background: "#fff",
+          border: "none",
+          boxShadow: "none",
+        }}
+      > <MenuItem>Files</MenuItem>
         {files.map((url, index) => (
-          <Box key={index} sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, mb: '4px' }}>
-
-            <a
-              href={url}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ fontSize: '14px', color: 'blue', textDecoration: 'none' }}
-            >
-              File {index + 1}
-            </a>
-          </Box>
+          <MenuItem
+            key={index}
+            value={index}
+            onClick={() => window.open(url, "_blank")}
+            sx={{ fontSize: "12px" }}
+          >
+            File {index + 1}
+          </MenuItem>
         ))}
-      </Box>
+      </Select>
     );
-  },
+  }
 },
+  
 
   { field: 'Employee_Name', align: 'center', headerAlign: 'center', headerName: 'Employee Name', width: 130, editable: true, headerClassName: 'head' },
   { field: 'Device_Fault', align: 'center', headerAlign: 'center', headerName: 'Device Fault', width: 100, editable: true, headerClassName: 'head' },

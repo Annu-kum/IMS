@@ -181,14 +181,14 @@ class updateInstallviewsets(SessionYearMixin,generics.UpdateAPIView):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+    
     def patch(self, request, *args, **kwargs):
         return self.update(request, *args, partial=True)
-
+    
     def put(self, request, *args, **kwargs):
         return self.update(request, *args, partial=False)
 
-
+        
 
 # class UpdateLetterHeadViewSets(SessionYearMixin,generics.UpdateAPIView):
 #     queryset = InstallatonModels.objects.all().order_by('MILLER_NAME')
@@ -265,7 +265,7 @@ class UpdateLetterHeadViewSets(SessionYearMixin, generics.UpdateAPIView):
             extra_files = request.FILES.getlist('extra_letterheads')
                       
             # Remove old extras
-            installation.extra_letterheads.all().delete()
+            # installation.extra_letterheads.all().delete()
 
             # Add new extras
             for file in extra_files:

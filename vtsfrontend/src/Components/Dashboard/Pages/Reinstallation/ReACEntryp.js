@@ -38,7 +38,7 @@ import DeleteDialog from './DeleteDialog';
 import {CircularProgress} from '@mui/material';
 import { useAuth } from '../../../account/AuthContext';
 import api from '../../../account/BaseApi';
-
+import {Select,MenuItem} from '@mui/material';
 export default function DataGridDemo() {
   const [rows, setRows] = useState([]);
   const [rowModesModel, setRowModesModel] = useState({});
@@ -319,36 +319,46 @@ const adminMaincolumn=[
         </IconButton>
       ),
     },
-      {
-      field: 'extra_letterheads',
-      headerName: 'Extra LetterHeads',
-      align: 'center',
-      headerAlign: 'center',
-      width: 100,
-      headerClassName: 'head',
-      renderCell: (params) => {
-        const files = params.row.extra_letterheads || [];
-        if (files.length === 0) return <span>--</span>;
-    
-        return (
-          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            {files.map((url, index) => (
-              <Box key={index} sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, mb: '4px' }}>
-    
-                <a
-                  href={url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ fontSize: '14px', color: 'blue', textDecoration: 'none' }}
-                >
-                  File {index + 1}
-                </a>
-              </Box>
-            ))}
-          </Box>
-        );
-      },
-    },
+ {
+  field: 'extra_letterheads',
+  headerName: 'Extra LetterHeads',
+  align: 'center',
+  headerAlign: 'center',
+  headerClassName: 'head',
+  width: 100,
+  renderCell: (params) => {
+    const files = params.row.extra_letterheads || [];
+
+    if (!files.length) return <span>--</span>;
+
+    return (
+      <Select
+        size="small"
+        displayEmpty
+        sx={{
+          fontSize: "12px",
+          width: 100,
+          height: 35,
+          background: "#fff",
+          border: "none",
+          boxShadow: "none",
+        }}
+      > <MenuItem>Files</MenuItem>
+        {files.map((url, index) => (
+          <MenuItem
+            key={index}
+            value={index}
+            onClick={() => window.open(url, "_blank")}
+            sx={{ fontSize: "12px" }}
+          >
+            File {index + 1}
+          </MenuItem>
+        ))}
+      </Select>
+    );
+  }
+},
+  
    
     { field: 'Replace_DeviceIMEI_NO', headerAlign:'center',align:'center', headerName: 'Replace Device IMEI No', width: 150, editable: true,headerClassName:'head' },
     { field: 'Remark1', align:'center', headerAlign:'center',headerName: 'Remark 1', width: 80, editable: true ,headerClassName:'head'},
@@ -385,36 +395,46 @@ const adminMaincolumn=[
         </IconButton>
       ),
     },
-      {
-      field: 'extra_letterheads',
-      headerName: 'Extra LetterHeads',
-      align: 'center',
-      headerAlign: 'center',
-      width: 100,
-      headerClassName: 'head',
-      renderCell: (params) => {
-        const files = params.row.extra_letterheads || [];
-        if (files.length === 0) return <span>--</span>;
-    
-        return (
-          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            {files.map((url, index) => (
-              <Box key={index} sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, mb: '4px' }}>
-    
-                <a
-                  href={url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ fontSize: '14px', color: 'blue', textDecoration: 'none' }}
-                >
-                  File {index + 1}
-                </a>
-              </Box>
-            ))}
-          </Box>
-        );
-      },
-    },
+{
+  field: 'extra_letterheads',
+  headerName: 'Extra LetterHeads',
+  align: 'center',
+  headerAlign: 'center',
+  headerClassName: 'head',
+  width: 100,
+  renderCell: (params) => {
+    const files = params.row.extra_letterheads || [];
+
+    if (!files.length) return <span>--</span>;
+
+    return (
+      <Select
+        size="small"
+        displayEmpty
+        sx={{
+          fontSize: "12px",
+          width: 100,
+          height: 35,
+          background: "#fff",
+          border: "none",
+          boxShadow: "none",
+        }}
+      > <MenuItem>Files</MenuItem>
+        {files.map((url, index) => (
+          <MenuItem
+            key={index}
+            value={index}
+            onClick={() => window.open(url, "_blank")}
+            sx={{ fontSize: "12px" }}
+          >
+            File {index + 1}
+          </MenuItem>
+        ))}
+      </Select>
+    );
+  }
+},
+  
    
     { field: 'Replace_DeviceIMEI_NO', headerAlign:'center',align:'center', headerName: 'Replace Device IMEI No', width: 150, editable: true,headerClassName:'head' },
     { field: 'Remark1', align:'center', headerAlign:'center',headerName: 'Remark 1', width: 80, editable: true ,headerClassName:'head'},
