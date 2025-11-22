@@ -121,7 +121,7 @@ class postReactivateviewset(generics.CreateAPIView):
     serializer_class = ReactivatepostSerializers
     permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser]
-
+     
     def get_serializer_context(self):
         return {'request': self.request}
 
@@ -216,7 +216,7 @@ class UpdatereactivateLetterHeadViewSets(generics.UpdateAPIView):
             extra_files = request.FILES.getlist('extra_letterheads')
 
             # Remove old extras
-            reactivation.extra_letterheads.all().delete()
+            # reactivation.extra_letterheads.all().delete()
 
             # Add new extras
             for file in extra_files:
