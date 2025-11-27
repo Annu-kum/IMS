@@ -101,8 +101,6 @@ export default function OverallCarts() {
       "Authorization": `Token ${token}`,
     };
 
-
-
     const Item = styled(Paper)(({ theme }) => ({
         backgroundColor: theme.palette.mode === 'dark' ? 'blue' : '#fff',
         ...theme.typography.body2,
@@ -110,302 +108,79 @@ export default function OverallCarts() {
         textAlign: 'center',
         color: theme.palette.text.secondary,
       }));
-      const fetchData=()=>{
 
-      
-         
-// -------------------------------Installation-----------------------------
-      
-        api.get(`/installation/total/count/`,{headers:headers})
-          .then(response => {
-            setCount(response.data.count);
-          })
-          .catch(error => {
-            console.error('There was an error fetching the count!', error);
-          });
-     
+const fetchData = () => {
+  api.get("/installation/dashboard/summary/", { headers })
+    .then((res) => {
+      const d = res.data;
 
-   
-        api.get(`/installation/total/new-count/`,{headers:headers})
-          .then(response => {
-            setInstallnew(response.data.count);
-          })
-          .catch(error => {
-            console.error('There was an error fetching the count!', error);
-          });
-   
-     
-        api.get(`/installation/total/renewal-count/`,{headers:headers})
-          .then(response => {
-            setInstallrenewal(response.data.count);
-          })
-          .catch(error => {
-            console.error('There was an error fetching the count!', error);
-          });
-   
-    
-        api.get(`/installation/date/today-count/`,{headers:headers})
-          .then(response => {
-            setTodayinstall(response.data.count);
-          })
-          .catch(error => {
-            console.error('There was an error fetching the count!', error);
-          });
-    
-    
-        api.get(`/installation/today-new-count/`,{headers:headers})
-          .then(response => {
-            setTodaynewinstall(response.data.count);
-          })
-          .catch(error => {
-            console.error('There was an error fetching the count!', error);
-          });
-    
-     
-        api.get(`/installation/today-renewal-count/`,{headers:headers})
-          .then(response => {
-            setTodayrenewalinstall(response.data.count);
-          })
-          .catch(error => {
-            console.error('There was an error fetching the count!', error);
-          });
-  
+      // INSTALLATION
+      setCount(d.installation.total);
+      setInstallnew(d.installation.new);
+      setInstallrenewal(d.installation.renewal);
 
-   
-        api.get(`/installation/yesterday-count/`,{headers:headers})
-          .then(response => {
-            setYesterdayinstall(response.data.count);
-          })
-          .catch(error => {
-            console.error('There was an error fetching the count!', error);
-          });
-    
-        api.get(`/installation/yesterday-new-count/`,{headers:headers})
-          .then(response => {
-            setYesterdaynewinstall(response.data.count);
-          })
-          .catch(error => {
-            console.error('There was an error fetching the count!', error);
-          });
-      
+      setTodayinstall(d.installation.today_total);
+      setTodaynewinstall(d.installation.today_new);
+      setTodayrenewalinstall(d.installation.today_renewal);
 
-        api.get(`/installation/yesterday-renewal-count/`,{headers:headers})
-          .then(response => {
-            setYesterdayrenewalinstall(response.data.count);
-          })
-          .catch(error => {
-            console.error('There was an error fetching the count!', error);
-          });
-     
-// ------------------------------------Deactivation-------------------------------
-     
-        api.get(`/deactivation/total/count/`,{headers:headers})
-        .then(response=>{
-          setDcount(response.data.count);
-        }).catch(error=>{
-          console.error('There was an error fetching the count!', error);
-        })
-    
-        api.get(`/deactivation/total/new-count/`,{headers:headers})
-        .then(response=>{
-          setdeactivatenew(response.data.count)
-        }).catch(error=>{
-          console.error('There was an error fetching the count!', error);
-        })
-     
-        api.get(`/deactivation/total/renewal-count/`,{headers:headers})
-        .then(response=>{
-          setDeactivaterenewal(response.data.count)
-        }).catch(error=>{
-          console.error('There was an error fetching the count!', error);
-        })
-     
-        api.get(`/deactivation/date/today-count/`,{headers:headers})
-        .then(response=>{
-          setDtodaycount(response.data.count)
-        }).catch(error=>{
-          console.error('There was an error fetching the count!', error);
-        })
-      
-        api.get(`/deactivation/today-new-count/`,{headers:headers})
-        .then(response=>{
-          setdeactivatenewToday(response.data.count)
-        }).catch(error=>{
-          console.error('There was an error fetching the count!', error);
-        })
-     
-        api.get(`/deactivation/today-renewal-count/`,{headers:headers})
-        .then(response=>{
-          setDeactivaterenewalToday(response.data.count)
-        }).catch(error=>{
-          console.error('There was an error fetching the count!', error);
-        })
-     
-        api.get(`/deactivation/yesterday-count/`,{headers:headers})
-        .then(response=>{
-          setDcountyesterday(response.data.count)
-        }).catch(error=>{
-          console.error('There was an error fetching the count!', error);
-        })
-      
-        api.get(`/deactivation/yesterday-new-count/`,{headers:headers})
-        .then(response=>{
-          setdeactivatenewyesterday(response.data.count)
-        }).catch(error=>{
-          console.error('There was an error fetching the count!', error);
-        })
-     
-        api.get(`/deactivation/yesterday-renewal-count/`,{headers:headers})
-        .then(response=>{
-          setDeactivaterenewalyesterday(response.data.count)
-        }).catch(error=>{
-          console.error('There was an error fetching the count!', error);
-        })
-      
-// -----------------------------------Reactivation---------------------------------
-      
-        api.get(`/reactivation/total/count/`,{headers:headers})
-        .then(response=>{
-          setRcount(response.data.count)
-        }).catch((error)=>{
-                console.log(error)
-        })
-     
-        api.get(`/reactivation/total/new-count/`,{headers:headers})
-        .then(response=>{
-          setreactivatenew(response.data.count)
-        }).catch((error)=>{
-                console.log(error)
-        })
-     
-        api.get(`/reactivation/total/renewal-count/`,{headers:headers})
-        .then(response=>{
-          setReactivaterenewal(response.data.count)
-        }).catch((error)=>{
-                console.log(error)
-        })
-      
-        api.get(`/reactivation/date/today-count/`,{headers:headers})
-        .then(response=>{
-          setRtodaycount(response.data.count)
-        }).catch((error)=>{
-                console.log(error)
-        })
-     
-        api.get(`/reactivation/today-new-count/`,{headers:headers})
-        .then(response=>{
-          setreactivatenewToday(response.data.count)
-        }).catch((error)=>{
-                console.log(error)
-        })
-     
-        api.get(`/reactivation/today-renewal-count/`,{headers:headers})
-        .then(response=>{
-          setReactivaterenewalToday(response.data.count)
-        }).catch((error)=>{
-                console.log(error)
-        })
-      
-        api.get(`/reactivation/yesterday-count/`,{headers:headers})
-        .then(response=>{
-          setRcountyesterday(response.data.count)
-        }).catch((error)=>{
-                console.log(error)
-        })
-     
-        api.get(`/reactivation/yesterday-new-count/`,{headers:headers})
-        .then(response=>{
-          setreactivatenewyesterday(response.data.count)
-        }).catch((error)=>{
-                console.log(error)
-        })
-     
-        api.get(`/reactivation/yesterday-renewal-count/`,{headers:headers})
-        .then(response=>{
-          setReactivaterenewalyesterday(response.data.count)
-        }).catch((error)=>{
-                console.log(error)
-        })
-     
-     
+      setYesterdayinstall(d.installation.yesterday_total);
+      setYesterdaynewinstall(d.installation.yesterday_new);
+      setYesterdayrenewalinstall(d.installation.yesterday_renewal);
 
-//----------------------------------OTR----------------------------
-    
-  api.get(`/otrdetails/total-otr`, {headers:headers})
-  .then(response=>{
-    setOcount(response.data.count)
-  }).catch((error)=>{
-          console.log(error)
-  })
+      // DEACTIVATION
+      setDcount(d.deactivation.total);
+      setdeactivatenew(d.deactivation.new);
+      setDeactivaterenewal(d.deactivation.renewal);
 
-  api.get(`/otrdetails/total-new-otr/`,{headers:headers})
-  .then(response=>{
-    setOTRnew(response.data.count)
-  }).catch((error)=>{
-          console.log(error)
-  })
+      setDtodaycount(d.deactivation.today_total);
+      setdeactivatenewToday(d.deactivation.today_new);
+      setDeactivaterenewalToday(d.deactivation.today_renewal);
 
-  api.get(`/otrdetails/total-renewal-otr/`,{headers:headers})
-  .then(response=>{
-    setOTRrenewal(response.data.count)
-  }).catch((error)=>{
-          console.log(error)
-  })
+      setDcountyesterday(d.deactivation.yesterday_total);
+      setdeactivatenewyesterday(d.deactivation.yesterday_new);
+      setDeactivaterenewalyesterday(d.deactivation.yesterday_renewal);
 
-  api.get(`/otrdetails/today-otr/`,{headers:headers})
-  .then(response=>{
-    setOtodaycount(response.data.count)
-  }).catch((error)=>{
-          console.log(error)
-  })
+      // REACTIVATION
+      setRcount(d.reactivation.total);
+      setreactivatenew(d.reactivation.new);
+      setReactivaterenewal(d.reactivation.renewal);
 
-  api.get(`/otrdetails/today-new-otr/`,{headers:headers})
-  .then(response=>{
-    setOTRnewToday(response.data.count)
-  }).catch((error)=>{
-          console.log(error)
-  })
+      setRtodaycount(d.reactivation.today_total);
+      setreactivatenewToday(d.reactivation.today_new);
+      setReactivaterenewalToday(d.reactivation.today_renewal);
 
-  api.get(`/otrdetails/today-renewal-otr/`,{headers:headers}  )
-  .then(response=>{
-    setOTRrenewalToday(response.data.count)
-  }).catch((error)=>{
-          console.log(error)
-  })
+      setRcountyesterday(d.reactivation.yesterday_total);
+      setreactivatenewyesterday(d.reactivation.yesterday_new);
+      setReactivaterenewalyesterday(d.reactivation.yesterday_renewal);
 
-  api.get(`/otrdetails/yesterday-otr/`,{headers:headers} )
-  .then(response=>{
-    setOcountyesterday(response.data.count)
-  }).catch((error)=>{
-          console.log(error)
-  })
+      // OTR
+      setOcount(d.otr.total);
+      setOTRnew(d.otr.new);
+      setOTRrenewal(d.otr.renewal);
 
-  api.get(`/otrdetails/yesterday-new-otr/`,{headers:headers} )
-  .then(response=>{
-    setOTRnewyesterday(response.data.count)
-  }).catch((error)=>{
-          console.log(error)
-  })
+      setOtodaycount(d.otr.today_total);
+      setOTRnewToday(d.otr.today_new);
+      setOTRrenewalToday(d.otr.today_renewal);
 
-
-
-     api.get(`/otrdetails/yesterday-renewal-otr/`,{headers:headers} )
-     .then(response=>{
-      setOTRrenewalyesterday(response.data.count)
-    }).catch((error)=>{
-            console.log(error)
+      setOcountyesterday(d.otr.yesterday_total);
+      setOTRnewyesterday(d.otr.yesterday_new);
+      setOTRrenewalyesterday(d.otr.yesterday_renewal);
     })
-  }
+    .catch((err) => console.error("Dashboard error:", err));
+};
+
 
       useEffect(() => {
         fetchData(); // Initial fetch
-        const interval = setInterval(fetchData, 60000); // Poll every 60 seconds
+        const interval = setInterval(fetchData, 120000); // Poll every 120 seconds
     
         return () => clearInterval(interval); // Cleanup on unmount
       }, []);
     
 
 const isNonMobile = useMediaQuery("(min-width:600px)");
+
+
 
 return (
   <>

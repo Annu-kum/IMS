@@ -1,9 +1,9 @@
 from django.urls import path,re_path as url
 from rest_framework import routers
-from . import views
+from . import views,dashboard
 from django.conf.urls.static import static
 from VTS_Report import settings
-router = routers.DefaultRouter
+router = routers.DefaultRouter()
 
 urlpatterns = [
 
@@ -26,5 +26,5 @@ urlpatterns = [
     path('yesterday-renewal-count/',views.YesterdayRenewalInstallCountView.as_view(),name='installations-yesterday-renewal-count'),
     path('import/',views.BulkImportView.as_view(),name='bulk-upload'),
     path('updateexcelLetterhead/',views.BulkUpdateLetterHeadView.as_view(),name='updateexcel'),
-
+    path('dashboard/summary/', dashboard.DashboardSummaryView.as_view(), name='dashboard-summary'),
 ]
