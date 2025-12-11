@@ -54,7 +54,7 @@ class GetAllMillersviewsets(SessionYearMixin,generics.ListAPIView):
     serializer_class=MillerEntrySerializers
     permission_classes=[IsAuthenticated]
     filter_backends=[filters.SearchFilter]
-    search_fields=['MILLER_NAME']
+    search_fields=['MILLER_NAME','MILLER_TRANSPORTER_ID']
     pagination_class=Paginations
 
     def list(self, request, *args, **kwargs):
