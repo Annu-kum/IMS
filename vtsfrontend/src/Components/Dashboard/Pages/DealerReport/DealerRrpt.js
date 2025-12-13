@@ -14,6 +14,7 @@ import { Link } from 'react-router-dom';
 import DealerwiseReport from './DealerwiseReport';
 import {CircularProgress,Typography} from '@mui/material';
 import api from '../../../account/BaseApi';
+import { all } from 'axios';
 
 
 
@@ -31,6 +32,7 @@ export default function DealerReport() {
   const [openPopup, setOpenPopup] = React.useState(false)
   const [selectedDealerName, setSelectedDealerName] = React.useState(null);
   const [loading,setLoading]=React.useState(true)
+  const [type,setType] =React.useState('all')
   const [fetchSum,setfetchSum] =React.useState({
     total_count: 0,
     total_new: 0,
@@ -38,31 +40,85 @@ export default function DealerReport() {
     total_otr: 0,
   })
   
-  const openInPopup = dealerName => {
+  const openInPopup = (dealerName,type) => {
     setSelectedDealerName(dealerName)
+    setType(type)
     setOpenPopup(true)
 }
 
 
 const columns = [
-  { field: 'dealername',label:'Dealer Name',headerClassName:'head', render: (rowData) => (
-    <Link  onClick={()=>openInPopup(rowData.dealername)} style={{ textDecoration: 'none', color: 'black' }}>
-      {rowData.dealername}
-    </Link>
-  )},
-  { field: 'totalcount',label:'Total Count',headerClassName:'head', render: (rowData) => (
-    <Link onClick={()=>openInPopup(rowData.dealername)} style={{ textDecoration: 'none', color: 'black' }}>
-      {rowData.totalcount} </Link>)},
-  { field: 'newinstall',label:'Total New Install',headerClassName:'head',render: (rowData) => (
-    <Link onClick={()=>openInPopup(rowData.dealername)} style={{ textDecoration: 'none', color: 'black' }}>
-      {rowData.newinstall} </Link>) },
-  { field: 'totalrenewal',label:'Total Renewal',headerClassName:'head',render: (rowData) => (
-    <Link onClick={()=>openInPopup(rowData.dealername)} style={{ textDecoration: 'none', color: 'black' }}>
-      {rowData.totalrenewal} </Link>)  },
-  { field: 'totalotr',label:'Total OTR',headerClassName:'head',render: (rowData) => (
-    <Link onClick={()=>openInPopup(rowData.dealername)} style={{ textDecoration: 'none', color: 'black' }}>
-      {rowData.totalotr} </Link>)},
-]
+  {
+    field: 'dealername',
+    label: 'Dealer Name',
+    headerClassName: 'head',
+    render: (rowData) => (
+      <Link
+        onClick={() => openInPopup(rowData.dealername, 'all')}
+        style={{ textDecoration: 'none', color: 'black' }}
+      >
+        {rowData.dealername}
+      </Link>
+    ),
+  },
+
+  {
+    field: 'totalcount',
+    label: 'Total Count',
+    headerClassName: 'head',
+    render: (rowData) => (
+      <Link
+        onClick={() => openInPopup(rowData.dealername, 'all')}
+        style={{ textDecoration: 'none', color: 'black' }}
+      >
+        {rowData.totalcount}
+      </Link>
+    ),
+  },
+
+  {
+    field: 'newinstall',
+    label: 'Total New Install',
+    headerClassName: 'head',
+    render: (rowData) => (
+      <Link
+        onClick={() => openInPopup(rowData.dealername, 'new')}
+        style={{ textDecoration: 'none', color: 'black' }}
+      >
+        {rowData.newinstall}
+      </Link>
+    ),
+  },
+
+  {
+    field: 'totalrenewal',
+    label: 'Total Renewal',
+    headerClassName: 'head',
+    render: (rowData) => (
+      <Link
+        onClick={() => openInPopup(rowData.dealername, 'renewal')}
+        style={{ textDecoration: 'none', color: 'black' }}
+      >
+        {rowData.totalrenewal}
+      </Link>
+    ),
+  },
+
+  {
+    field: 'totalotr',
+    label: 'Total OTR',
+    headerClassName: 'head',
+    render: (rowData) => (
+      <Link
+        onClick={() => openInPopup(rowData.dealername, 'otr')}
+        style={{ textDecoration: 'none', color: 'black' }}
+      >
+        {rowData.totalotr}
+      </Link>
+    ),
+  },
+];
+
 
 const token = localStorage.getItem('Token');
  const headers = {
@@ -422,6 +478,9 @@ return (
      </Box>
   <DealerwiseReport
   selectedDealerName={selectedDealerName}
+  type={type}
+  startDate={startDate}
+  endDate={endDate}
   openPopup={openPopup}
   setOpenPopup={setOpenPopup}
 >

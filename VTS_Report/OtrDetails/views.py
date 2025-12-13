@@ -43,7 +43,7 @@ class OtrDetailsviews(SessionYearMixin, generics.ListAPIView):
         total_count = installation_count + deactivation_count + reactivation_count
         return Response({'count': total_count}, status=status.HTTP_200_OK)
 
-
+# count dealer wise report
 class DealerReport(SessionYearMixin, generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     queryset = InstallatonModels.objects.all()   # Base queryset needed for SessionYearMixin
@@ -86,7 +86,7 @@ class DealerReport(SessionYearMixin, generics.ListAPIView):
 
 
     
-
+# Geting total sum of enteries by dealer
 class GetSumofEnteries(SessionYearMixin,generics.ListAPIView):
 
     permission_classes = [IsAuthenticated]
@@ -136,36 +136,40 @@ class GetSumofEnteries(SessionYearMixin,generics.ListAPIView):
         return Response(result)
 
 
-
+# Fetch dealer wise data after hovering on dealer name
 class FetchDealerData(SessionYearMixin, generics.ListAPIView):
     permission_classes = [IsAuthenticated]
-    pagination_class = Paginations
+    queryset = InstallatonModels.objects.all()
 
-    def get(self, request, dealer_name, *args, **kwargs):
-        session_year = get_user_session_year(request.user)
+    def get(self, request, *args, **kwargs):
+        dealer = request.query_params.get("dealer")
+        type_filter = request.query_params.get("type", "all")
+        start_date = request.query_params.get("start_date")
+        end_date = request.query_params.get("end_date")
 
-        installation_data = InstallatonModels.objects.filter(
-            Dealer_Name__Dealer_Name=dealer_name
-        )
-        deactivation_data = DeactivationModels.objects.filter(
-            Dealer_Name=dealer_name
-        )
-        reactivation_data = ReactivationModels.objects.filter(
-            Dealer_Name=dealer_name
-        )
+        # Start with session-year filtered queryset
+        qs = self.get_queryset()
 
-        #  Apply session filter if available
-        if session_year:
-            installation_data = installation_data.filter(session_year=session_year)
-            deactivation_data = deactivation_data.filter(session_year=session_year)
-            reactivation_data = reactivation_data.filter(session_year=session_year)
+        # Filter by dealer
+        qs = qs.filter(Dealer_Name__Dealer_Name=dealer)
 
-        context = {
-            'dealer_name': dealer_name,
-            'installation_data': installation_data.values(),
-            'deactivation_data': deactivation_data.values(),
-            'reactivation_data': reactivation_data.values(),
-        }
+        # Apply DATE FILTERS (Fix!)
+        if start_date:
+            start_date = datetime.strptime(start_date, "%d-%m-%Y").date()
+            qs = qs.filter(InstallationDate__gte=start_date)
 
-        return Response(context)
+        if end_date:
+            end_date = datetime.strptime(end_date, "%d-%m-%Y").date()
+            qs = qs.filter(InstallationDate__lte=end_date)
 
+        # Type-based filtering
+        if type_filter == "new":
+            qs = qs.filter(NewRenewal="New")
+
+        elif type_filter == "renewal":
+            qs = qs.filter(NewRenewal="Renewal")
+
+        elif type_filter == "otr":
+            qs = qs.exclude(OTR="")
+
+        return Response(list(qs.values()), status=200)
