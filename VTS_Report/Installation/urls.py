@@ -18,4 +18,5 @@ urlpatterns = [
     path('import/',views.BulkImportView.as_view(),name='bulk-upload'),
     path('updateexcelLetterhead/',views.BulkUpdateLetterHeadView.as_view(),name='updateexcel'),
     path('dashboard/summary/', dashboard.DashboardSummaryView.as_view(), name='dashboard-summary'),
+    path('report/duplicateimei/', views.DuplicateIMEIreportView.as_view(), name='installation-duplicate'),
 ]

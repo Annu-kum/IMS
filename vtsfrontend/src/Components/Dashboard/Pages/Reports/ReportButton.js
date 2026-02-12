@@ -10,7 +10,7 @@ import PropTypes from 'prop-types';
 import InstallReport from './InstallReport';
 import ReactiveReport from './ReactiveReport';
 import OtrReactivation_Report from './OtrReactivation_Report';
-
+import DuplicateImei from './DuplicateImei';
 function CustomTabPanel(props) {
   const { children, value, index, ...other } = props;
 
@@ -64,7 +64,7 @@ export default function ReportButton() {
          <Tab label="Deactivation" {...a11yProps(1)}  className='tabs' sx={{color:'#1B1A55' , fontSize:'12px',fontWeight:'bolder',fontFamily:'initial'}}/>
          <Tab label="Reactivation" {...a11yProps(2)} className='tabs' sx={{color:'#1B1A55' , fontSize:'12px',fontWeight:'bolder',fontFamily:'initial'}}/>
          <Tab label="OTR Reactivation" {...a11yProps(3)} className='tabs' sx={{color:'#1B1A55' , fontSize:'12px',fontWeight:'bolder',fontFamily:'initial'}}/>
-
+         <Tab label="Duplicate IMEI" {...a11yProps(4)} className='tabs' sx={{color:'#1B1A55' , fontSize:'12px',fontWeight:'bolder',fontFamily:'initial'}}/>
        </Tabs>
      </Box> 
        </Box>
@@ -80,6 +80,9 @@ export default function ReportButton() {
       {/* 151025 */}
       <CustomTabPanel value={value} index={3}> 
         <OtrReactivation_Report/>
+      </CustomTabPanel>
+      <CustomTabPanel value={value} index={4}>
+        <DuplicateImei/>
       </CustomTabPanel>
       
      
