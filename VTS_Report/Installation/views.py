@@ -392,3 +392,72 @@ class BulkUpdateLetterHeadView(APIView):
             }, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+#02012026
+class DuplicateIMEIreportView(SessionYearMixin, generics.ListAPIView):
+    queryset = InstallatonModels.objects.all()
+    serializer_class = InstallSerializers
+    permission_classes = [IsAuthenticated]
+    filter_backends = [filters.SearchFilter]
+    pagination_class = Paginations
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+
+    search_fields = [
+        'MILLER_TRANSPORTER_ID', 'MILLER_NAME', 'Device_Name',
+        'GPS_IMEI_NO', 'Entity_id', 'SIM_NO', 'NewRenewal', 'OTR',
+        'vehicle1', 'vehicle2', 'vehicle3', 'Employee_Name',
+        'Device_Fault', 'Fault_Reason', 'Replace_DeviceIMEI_NO',
+        'Remark1', 'Remark2', 'Remark3'
+    ]
+
+    def get_queryset(self):
+        #  Session-year filtered base queryset
+        base_qs = super().get_queryset()
+
+        #  Find duplicate IMEIs at SESSION LEVEL (not date level)
+        duplicate_imeis = (
+            base_qs
+            .exclude(GPS_IMEI_NO__isnull=True)
+            .exclude(GPS_IMEI_NO='')
+            .values('GPS_IMEI_NO')
+            .annotate(imei_count=Count('id'))
+            .filter(imei_count__gt=1)
+            .values_list('GPS_IMEI_NO', flat=True)
+        )
+
+        #  Filter only duplicate records
+        qs = base_qs.filter(GPS_IMEI_NO__in=duplicate_imeis)
+
+        #  NOW apply DATE FILTER (correct place)
+        start_date = self.request.query_params.get('start_date')
+        end_date = self.request.query_params.get('end_date')
+
+        if start_date and end_date:
+            try:
+                start_date = datetime.strptime(start_date, '%d-%m-%Y').date()
+                end_date = datetime.strptime(end_date, '%d-%m-%Y').date()
+                qs = qs.filter(InstallationDate__range=(start_date, end_date))
+            except ValueError:
+                pass
+
+        # Apply search filter
+        for backend in list(self.filter_backends):
+            qs = backend().filter_queryset(self.request, qs, self)
+
+        return qs.order_by('GPS_IMEI_NO', 'id')
+
+    def get(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        export = request.query_params.get('export')
+
+        if export == 'true':
+            serializer = self.get_serializer(queryset, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
