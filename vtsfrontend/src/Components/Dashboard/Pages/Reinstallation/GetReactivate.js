@@ -446,7 +446,7 @@ return (
                              >
                              <option value=" " >select</option>
                              { loadDealers && loadDealers.length > 0 ? (loadDealers.map((item) => (
-                             <option key={item.id} value={item.id}>
+                             <option key={item.id} value={item.Dealer_Name}>
                                {item.Dealer_Name}
                              </option>
                            ))):(<option value="No Data">No Data</option>)}
