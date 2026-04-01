@@ -39,6 +39,16 @@ class SessionYearMixin:
             return queryset.filter(session_year=session_year)
 
         return queryset.none()
+# restrict users for different fields
+def get_filtered_queryset(queryset, user):
+
+    if user.is_restricted:
+        return queryset.exclude(
+            Q(MILLER_TRANSPORTER_ID="TR00000") |
+            Q(district="ANY")
+        )
+
+    return queryset
 
 
 # def get_user_session_year(user, request=None):
