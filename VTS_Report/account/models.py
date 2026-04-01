@@ -52,6 +52,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         blank=True,
         related_name='users'
     )
+    is_restricted = models.BooleanField(default=False)
     USERNAME_FIELD = 'username'
     class Meta:
         ordering = ['username']

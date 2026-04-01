@@ -16,7 +16,7 @@ import pandas as pd
 from Dealer.models import Dealersmodel
 from rest_framework.exceptions import NotFound
 from django.core.files.base import ContentFile
-from account.utility import get_user_session_year
+from account.utility import get_user_session_year,get_filtered_queryset
 from account.utility import SessionYearMixin
 logger = logging.getLogger(__name__)
 
@@ -43,6 +43,7 @@ class GetDeactiveviewset(SessionYearMixin,generics.ListAPIView):
 
     def get_queryset(self):
         queryset = super().get_queryset().order_by('-id')
+        queryset= get_filtered_queryset(queryset,self.request.user)
         start_date = self.request.query_params.get('start_date', None)
         end_date = self.request.query_params.get('end_date', None)
         
@@ -65,6 +66,7 @@ class GetDeactiveviewset(SessionYearMixin,generics.ListAPIView):
         if MILLER_TRANSPORTER_ID:
             # Use filter instead of get
             miller_instances = super().get_queryset().filter(MILLER_TRANSPORTER_ID=MILLER_TRANSPORTER_ID)
+            miller_instances = get_filtered_queryset(miller_instances, request.user)
             if miller_instances.exists():
                 serializer = self.get_serializer(miller_instances, many=True)
                 return Response(serializer.data, status=status.HTTP_200_OK)

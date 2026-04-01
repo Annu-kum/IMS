@@ -9,12 +9,12 @@ from .models import SessionYear, User, UserSessionYear
 
 class UserAdmin(BaseUserAdmin):
     ordering = ['id','username']
-    list_display = ['username','createdBy','session_year']
+    list_display = ['username','createdBy','session_year','is_restricted']
     list_per_page = 20
     list_max_show_all =50
     fieldsets = (
         (None, {'fields': ('username', 'password')}),
-        (_('Personal Info'), {'fields': ('first_name','last_name','email','phone','createdBy','session_year')}),
+        (_('Personal Info'), {'fields': ('first_name','last_name','email','phone','createdBy','session_year','is_restricted')}),
         (
             _('Permissions'),
             {
@@ -23,6 +23,8 @@ class UserAdmin(BaseUserAdmin):
                     'is_staff',
                     'is_superuser',
                     'groups',
+                    
+                    
                 )
             }
         ),

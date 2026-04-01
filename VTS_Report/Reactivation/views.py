@@ -13,7 +13,7 @@ from rest_framework.pagination import PageNumberPagination
 from Dealer.models import Dealersmodel
 import pandas as pd 
 from rest_framework.exceptions import NotFound
-from account.utility import get_user_session_year,SessionYearMixin
+from account.utility import get_user_session_year,SessionYearMixin,get_filtered_queryset
 from django.core.files.base import ContentFile
 from django.db.models import Q
 from django.utils.dateparse import parse_date
@@ -46,6 +46,7 @@ class GetReactivateviewset(SessionYearMixin,generics.ListAPIView):
 
     def get_queryset(self):
         queryset = super().get_queryset().order_by('-id')
+        queryset= get_filtered_queryset(queryset,self.request.user)
         start_date = self.request.query_params.get('start_date', None)
         end_date = self.request.query_params.get('end_date', None)
         
@@ -69,6 +70,7 @@ class GetReactivateviewset(SessionYearMixin,generics.ListAPIView):
         if MILLER_TRANSPORTER_ID:
             
                 miller_instance = super().get_queryset().filter(MILLER_TRANSPORTER_ID=MILLER_TRANSPORTER_ID)
+                miller_instances = get_filtered_queryset(miller_instances, request.user)
                 if miller_instance.exists():
                   serializer = self.get_serializer(miller_instance,many=True)
                   return Response(serializer.data, status=status.HTTP_200_OK)
@@ -374,6 +376,7 @@ class OTRReactivationReportView(SessionYearMixin, generics.ListAPIView):
 
     def get_queryset(self):
         queryset = super().get_queryset().order_by('-id')
+        queryset= get_filtered_queryset(queryset,self.request.user)
 
         # Show only OTR = 'YES' or 'Yes' records
         queryset = queryset.filter(~Q(OTR=''))
@@ -412,6 +415,7 @@ class OTRReactivationReportView(SessionYearMixin, generics.ListAPIView):
     def get(self, request, *args, **kwargs):
         export = request.query_params.get('export')
         queryset = self.get_queryset()
+        queryset= get_filtered_queryset(queryset,self.request.user)
 
         #  Export mode (get all data without pagination)
         if export == 'true':
