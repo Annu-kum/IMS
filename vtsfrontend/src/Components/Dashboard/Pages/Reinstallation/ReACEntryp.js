@@ -359,7 +359,7 @@ const adminMaincolumn=[
   }
 },
   
-   
+    { field: 'Employee_Name', align: 'center', headerAlign: 'center', headerName: 'Employee Name', width: 130, editable: true, headerClassName: 'head' },   
     { field: 'Replace_DeviceIMEI_NO', headerAlign:'center',align:'center', headerName: 'Replace Device IMEI No', width: 150, editable: true,headerClassName:'head' },
     { field: 'Remark1', align:'center', headerAlign:'center',headerName: 'Remark 1', width: 80, editable: true ,headerClassName:'head'},
     { field: 'Remark2',align:'center', headerAlign:'center', headerName: 'Remark 2', width: 80, editable: true,headerClassName:'head' },
@@ -435,7 +435,7 @@ const adminMaincolumn=[
   }
 },
   
-   
+    { field: 'Employee_Name', align: 'center', headerAlign: 'center', headerName: 'Employee Name', width: 130, editable: true, headerClassName: 'head' },   
     { field: 'Replace_DeviceIMEI_NO', headerAlign:'center',align:'center', headerName: 'Replace Device IMEI No', width: 150, editable: true,headerClassName:'head' },
     { field: 'Remark1', align:'center', headerAlign:'center',headerName: 'Remark 1', width: 80, editable: true ,headerClassName:'head'},
     { field: 'Remark2',align:'center', headerAlign:'center', headerName: 'Remark 2', width: 80, editable: true,headerClassName:'head' },
