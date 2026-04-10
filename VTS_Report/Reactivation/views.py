@@ -69,10 +69,10 @@ class GetReactivateviewset(SessionYearMixin,generics.ListAPIView):
         MILLER_TRANSPORTER_ID = kwargs.get('MILLER_TRANSPORTER_ID', None)
         if MILLER_TRANSPORTER_ID:
             
-                miller_instance = super().get_queryset().filter(MILLER_TRANSPORTER_ID=MILLER_TRANSPORTER_ID)
+                miller_instances = super().get_queryset().filter(MILLER_TRANSPORTER_ID=MILLER_TRANSPORTER_ID)
                 miller_instances = get_filtered_queryset(miller_instances, request.user)
-                if miller_instance.exists():
-                  serializer = self.get_serializer(miller_instance,many=True)
+                if miller_instances.exists():
+                  serializer = self.get_serializer(miller_instances,many=True)
                   return Response(serializer.data, status=status.HTTP_200_OK)
                 else:
                   return Response({'error': 'Miller not found'}, status=status.HTTP_404_NOT_FOUND)
