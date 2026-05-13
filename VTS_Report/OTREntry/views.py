@@ -22,7 +22,7 @@ from .serializers import otrdataserializes,OtrgetSerializers
 from datetime import timedelta,datetime
 import logging
 from account.utility import SessionYearMixin
-from account.utility import get_user_session_year
+from account.utility import get_user_session_year,get_filtered_queryset
 from Reactivation.models import ReactivationModels
 from Reactivation.serializers import ReactivateSerializers
 logger = logging.getLogger(__name__)
@@ -264,9 +264,14 @@ class GetDetailsByIMEI(SessionYearMixin,generics.ListAPIView):
     permission_classes = [IsAuthenticated]  
     def get(self, request, GPS_IMEI_NO):
         imei = GPS_IMEI_NO.strip()
-
+        
         #  Check Reactivation table first (priority)
-        react_instance = ReactivationModels.objects.filter(GPS_IMEI_NO__iexact=imei).order_by('-id').first()
+        react_qs = ReactivationModels.objects.filter(
+            session_year=request.user.session_year
+        )
+        react_qs = get_filtered_queryset(react_qs, request.user)
+
+        react_instance = react_qs.filter(GPS_IMEI_NO__iexact=imei).order_by('-id').first()
         if react_instance:
             serializer = ReactivateSerializers(react_instance, context={'request': request})
             data = serializer.data
@@ -274,7 +279,11 @@ class GetDetailsByIMEI(SessionYearMixin,generics.ListAPIView):
             return Response(data, status=status.HTTP_200_OK)
 
         #  If not found, fallback to Installation table
-        install_instance = InstallatonModels.objects.filter(GPS_IMEI_NO__iexact=imei).order_by('-id').first()
+        install_qs = InstallatonModels.objects.filter(
+            session_year=request.user.session_year
+        )
+        install_qs=get_filtered_queryset(install_qs,request.user)
+        install_instance = install_qs.filter(GPS_IMEI_NO__iexact=imei).order_by('-id').first()
         if install_instance:
             serializer = InstallSerializers(install_instance, context={'request': request})
             data = serializer.data
@@ -286,3 +295,129 @@ class GetDetailsByIMEI(SessionYearMixin,generics.ListAPIView):
             {"detail": f"No record found for IMEI {imei} in Installation or Reactivation."},
             status=status.HTTP_404_NOT_FOUND
         )
+
+
+
+
+
+
+
+# class GetDetailsByIMEI(SessionYearMixin, generics.ListAPIView):
+
+#     permission_classes = [IsAuthenticated]
+
+#     def get(self, request, GPS_IMEI_NO):
+
+#         imei = GPS_IMEI_NO.strip()
+
+#         # ✅ SESSION FILTERED QUERYSET
+#         react_qs = ReactivationModels.objects.all()
+#         react_qs = self.filter_queryset(react_qs)
+
+#         # optional restriction filter
+#         react_qs = get_filtered_queryset(react_qs, request.user)
+
+#         # ✅ NOW FIND IMEI
+#         react_instance = react_qs.filter(
+#             GPS_IMEI_NO__iexact=imei
+#         ).order_by('-id').first()
+
+#         if react_instance:
+#             serializer = ReactivateSerializers(
+#                 react_instance,
+#                 context={'request': request}
+#             )
+
+#             data = serializer.data
+#             data['source_type'] = 'reactivation'
+
+#             return Response(data, status=status.HTTP_200_OK)
+
+#         # ✅ INSTALLATION SESSION FILTER
+#         install_qs = InstallatonModels.objects.all()
+#         install_qs = self.filter_queryset(install_qs)
+
+#         install_qs = get_filtered_queryset(install_qs, request.user)
+
+#         install_instance = install_qs.filter(
+#             GPS_IMEI_NO__iexact=imei
+#         ).order_by('-id').first()
+
+#         if install_instance:
+#             serializer = InstallSerializers(
+#                 install_instance,
+#                 context={'request': request}
+#             )
+
+#             data = serializer.data
+#             data['source_type'] = 'installation'
+
+#             return Response(data, status=status.HTTP_200_OK)
+
+#         return Response(
+#             {
+#                 "detail": f"No record found for IMEI {imei}."
+#             },
+#             status=status.HTTP_404_NOT_FOUND
+#         )
+
+
+
+
+# class GetDetailsByIMEI(SessionYearMixin, generics.ListAPIView):
+
+#     permission_classes = [IsAuthenticated]
+
+#     def get(self, request, GPS_IMEI_NO):
+
+#         imei = GPS_IMEI_NO.strip()
+
+#         #  SESSION FILTERED REACTIVATION QUERYSET
+#         react_qs = ReactivationModels.objects.filter(
+#             session_year=request.user.session_year
+#         )
+
+#         react_qs = get_filtered_queryset(react_qs, request.user)
+
+#         react_instance = react_qs.filter(
+#             GPS_IMEI_NO__iexact=imei
+#         ).order_by('-id').first()
+
+#         if react_instance:
+#             serializer = ReactivateSerializers(
+#                 react_instance,
+#                 context={'request': request}
+#             )
+
+#             data = serializer.data
+#             data['source_type'] = 'reactivation'
+
+#             return Response(data, status=status.HTTP_200_OK)
+
+#         # SESSION FILTERED INSTALL QUERYSET
+#         install_qs = InstallatonModels.objects.filter(
+#             session_year=request.user.session_year
+#         )
+
+#         install_qs = get_filtered_queryset(install_qs, request.user)
+
+#         install_instance = install_qs.filter(
+#             GPS_IMEI_NO__iexact=imei
+#         ).order_by('-id').first()
+
+#         if install_instance:
+#             serializer = InstallSerializers(
+#                 install_instance,
+#                 context={'request': request}
+#             )
+
+#             data = serializer.data
+#             data['source_type'] = 'installation'
+
+#             return Response(data, status=status.HTTP_200_OK)
+
+#         return Response(
+#             {"detail": f"No record found for IMEI {imei}."},
+#             status=status.HTTP_404_NOT_FOUND
+#         )
+
